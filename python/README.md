@@ -4,7 +4,7 @@
 
 # Orin Framework - Python Wrapper
 This is the python wrapper available for the Orin Framework.
-It's in its infancy, so don't expect it to perform as the native version
+It's in its infancy, so don't expect it to perform similarly the native version
 especially since it's written in python.
 
 Anyways, it basically wraps the whole framework into the python environment.
