@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="orin-framework-python-512x.png" width="256" >
+    <img src"orin-framework-python-512x.png" width="256" >
 </p>
 
 # Orin Framework - Python Wrapper
