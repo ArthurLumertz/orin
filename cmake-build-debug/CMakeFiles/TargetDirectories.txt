@@ -1,0 +1,3 @@
+/Users/arthurlumertz/CLionProjects/Orin Framework/cmake-build-debug/CMakeFiles/Orin_Framework.dir
+/Users/arthurlumertz/CLionProjects/Orin Framework/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/arthurlumertz/CLionProjects/Orin Framework/cmake-build-debug/CMakeFiles/rebuild_cache.dir
