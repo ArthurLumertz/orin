@@ -441,11 +441,11 @@ liborin.CreateModel.argtypes = [
     ctypes.c_size_t
 ]
 liborin.CreateModel.restype = ctypes.POINTER(Model)
-def CreateModel(vertices: Vertex, indices: int):
+def CreateModel(vertices: list, indices: list):
     vertex_array = (Vertex * len(vertices))(*vertices)
     index_array = (ctypes.c_uint * len(indices))(*indices)
 
-    liborin.CreateModel(vertex_array, len(vertices), index_array, len(indices))
+    return liborin.CreateModel(vertex_array, len(vertices), index_array, len(indices))
 
 liborin.DestroyModel.argtypes = [ctypes.POINTER(Model)]
 liborin.DestroyModel.restype = None
@@ -457,8 +457,7 @@ liborin.SetColor.restype = None
 def SetColor(color: Color):
     liborin.SetColor(color)
 
-# TODO: FIX THIS ASAP, PASS MATRIX AS ctypes.POINTER(Matrix4f)
-liborin.DrawModel.argtypes = [ctypes.POINTER(Model), Matrix4f]
+liborin.DrawModel.argtypes = [ctypes.POINTER(Model), ctypes.POINTER(Matrix4f)]
 liborin.DrawModel.restype = None
 def DrawModel(model: Model, transform: Matrix4f):
     liborin.DrawModel(model, transform)
