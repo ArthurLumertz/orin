@@ -1,6 +1,7 @@
 #include "display.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "input.h"
 
 Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int args) {
     if (!glfwInit()) {
@@ -44,6 +45,10 @@ Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int 
         glfwTerminate();
         return NULL;
     }
+
+    glfwSetCursorPosCallback(window, Internal_CursorPosCallback);
+    glfwSetMouseButtonCallback(window, Internal_MouseButtonCallback);
+    glfwSetKeyCallback(window, Internal_KeyCallback);
 
     const GLFWvidmode *vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
     glfwSetWindowPos(window, (vidmode->width - displayMode.width) / 2, (vidmode->height - displayMode.height) / 2);

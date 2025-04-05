@@ -11,6 +11,8 @@
 #include <complex.h>
 #include <stb_image.h>
 
+#include "internal/input.h"
+
 Shader *currentShader = NULL;
 Camera2D *currentCamera = NULL;
 Display *currentDisplay = NULL;
@@ -184,4 +186,29 @@ void SetUniform4i(Shader *shader, const char *name, Vector4i value) {
 
 void SetUniformMatrix4f(Shader *shader, const char *name, Matrix4f *value) {
     Internal_SetUniformMatrix4f(shader, name, value);
+}
+
+
+int IsKeyDown(int key) {
+    return Internal_IsKeyDown(key);
+}
+
+int IsKeyReleased(int key) {
+    return Internal_IsKeyReleased(key);
+}
+
+int IsButtonDown(int button) {
+    return Internal_IsButtonDown(button);
+}
+
+int IsButtonReleased(int button) {
+    return Internal_IsButtonReleased(button);
+}
+
+Vector2f GetMousePosition() {
+    return Internal_GetMousePosition();
+}
+
+Vector2f GetMouseDelta() {
+    return Internal_GetMouseDelta();
 }

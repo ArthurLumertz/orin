@@ -351,6 +351,9 @@ int IsKeyReleased(int key);
 int IsButtonDown(int button);
 int IsButtonReleased(int button);
 
+Vector2f GetMousePosition();
+Vector2f GetMouseDelta();
+
 #ifdef __cplusplus
 }
 #endif
