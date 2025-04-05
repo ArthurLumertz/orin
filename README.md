@@ -44,8 +44,8 @@ int main() {
      * used for simple or prototype games, you can write your own shaders and
      * load them here using CreateShader(vertexFile, fragmentFile)
      *
-     * IMPORTANT: The default shader does NOT work with any other OpenGL version
-     * that is not 3.3!
+     * IMPORTANT: The default shader does NOT work with any other version
+     * that is not OpenGL 3.3 specified in CreateDisplay()!
      */
     Shader *shader = CreateDefaultShader();
 
