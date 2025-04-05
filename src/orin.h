@@ -332,7 +332,7 @@ Model *CreateModel(Vertex vertices[], size_t vertexCount, unsigned int indices[]
 void DestroyModel(Model *model);
 
 void SetColor(Color color);
-void DrawModel(Model *model, Matrix4f transform);
+void DrawModel(Model *model, Matrix4f *transform);
 
 void SetUniform1f(Shader *shader, const char *name, float value);
 void SetUniform2f(Shader *shader, const char *name, Vector2f value);

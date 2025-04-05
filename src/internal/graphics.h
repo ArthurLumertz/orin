@@ -17,7 +17,7 @@ void Internal_SetColor(Color color, Shader *shader);
 void Internal_DrawRectangle(Shader *shader, Vector2f position, Vector2f size, Color color);
 void Internal_DrawTexture(Shader *shader, Texture *texture, Vector2f position, Vector2f size, Color color);
 
-void Internal_DrawModel(Model *model, Matrix4f transform, Shader *shader);
+void Internal_DrawModel(Model *model, Matrix4f *transform, Shader *shader);
 
 Shader *Internal_CreateDefaultShader();
 

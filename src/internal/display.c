@@ -24,7 +24,7 @@ Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int 
         contextVersionMajor = 3;
         contextVersionMinor = 3;
         modernOpenGL = 1;
-    } if (args & OPENGL_21) {
+    } else if (args & OPENGL_21) {
         contextVersionMajor = 2;
         contextVersionMinor = 1;
     }

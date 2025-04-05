@@ -148,7 +148,7 @@ void SetColor(Color color) {
     Internal_SetColor(color, currentShader);
 }
 
-void DrawModel(Model *model, Matrix4f transform) {
+void DrawModel(Model *model, Matrix4f *transform) {
     Internal_DrawModel(model, transform, currentShader);
 }
 

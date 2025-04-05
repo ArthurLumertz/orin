@@ -56,14 +56,14 @@ void Internal_SetColor(Color color, Shader *shader) {
     SetUniform4f(shader, "u_color", c);
 }
 
-void Internal_DrawModel(Model *model, Matrix4f transform, Shader *shader) {
+void Internal_DrawModel(Model *model, Matrix4f *transform, Shader *shader) {
     static unsigned int lastVao = 999;
 
     if (lastVao != model->vao) {
         glBindVertexArray(model->vao);
     }
 
-    SetUniformMatrix4f(shader, "u_transmatrix", &transform);
+    SetUniformMatrix4f(shader, "u_transmatrix", transform);
 
     glDrawElements(GL_TRIANGLES, model->indexCount, GL_UNSIGNED_INT, 0);
 
@@ -76,7 +76,7 @@ void Internal_DrawRectangle(Shader *shader, Vector2f position, Vector2f size, Co
     transform = TranslateMatrix4f(transform, (Vector3f){position.x,position.y,0.0f});
     Vector4f c = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
     SetUniform4f(shader, "u_color", c);
-    Internal_DrawModel(GetCubeModel(), transform, shader);
+    Internal_DrawModel(GetCubeModel(), &transform, shader);
 }
 
 void Internal_DrawTexture(Shader *shader, Texture *texture, Vector2f position, Vector2f size, Color color) {
@@ -90,7 +90,7 @@ void Internal_DrawTexture(Shader *shader, Texture *texture, Vector2f position, V
     Matrix4f transform = IdentityMatrix4f();
     transform = ScaleMatrix4f(transform, (Vector3f){size.x,size.y,0.0f});
     transform = TranslateMatrix4f(transform, (Vector3f){position.x,position.y,0.0f});
-    Internal_DrawModel(GetCubeModel(), transform, shader);
+    Internal_DrawModel(GetCubeModel(), &transform, shader);
 
     SetUniform1i(shader, "u_texture", 0);
 }
