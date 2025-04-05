@@ -9,17 +9,17 @@ In future versions, I might wrap it to other languages such as:
 - Java
 - Python
 
-# Features
+## Features
 - Display Management
 - Texture Loading & Rendering
 - Keyboard & Mouse Input
 - Vector & Matrix Math
 - Audio Support (coming soon)
 
-# Dependencies
+## Dependencies
 As of the latest version, the Orin Framework only relies in STB Image.
 
-# Code Example
+## Code Example
 ```c
 /**
  * Orin Framework, 2025
