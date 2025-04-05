@@ -1,18 +1,25 @@
-# Orin
-orin is a game framework built for those seeking a new game development experience, for experienced and amateur developers.
-it's made for people to turn ideas into games without requiring extensive knowledge of game development but also have low level
-and advanced features built in to it.
+# What is This?
+The Orin Framework is a game framework written in C for maximum performance and portability.
+I've taken some inspiration from SDL and RayLib to not make it extremely difficult nor lack
+any low-level aspects of game development.
 
-this library is still being developed, expect significant changes over the year.
+In future versions, I might wrap it to other languages such as:
+- C++
+- C#
+- Java
+- Python
 
 # Features
-- display handling
-- textures
-- key/mouse input
-- vectors and matrices
-- _audio will be coming soon_
+- Display Management
+- Texture Loading & Rendering
+- Keyboard & Mouse Input
+- Vector & Matrix Math
+- Audio Support (coming soon)
 
-# Basic display
+# Dependencies
+As of the latest version, the Orin Framework only relies in STB Image.
+
+# Code Example
 ```c
 /**
  * Orin Framework, 2025
