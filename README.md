@@ -11,10 +11,12 @@ any low-level aspects of game development.
 The Orin Framework is also available for the following languages:
 - [Python](./python/)
 
+
 In future versions, I might wrap it to other languages such as:
 - C++
 - C#
 - Java
+
 
 ## Features
 - Display Management
@@ -23,8 +25,10 @@ In future versions, I might wrap it to other languages such as:
 - Vector & Matrix Math
 - Audio Support (coming soon)
 
+
 ## Dependencies
 As of the latest version, the Orin Framework only relies in STB Image.
+
 
 ## Code Example
 ```c
