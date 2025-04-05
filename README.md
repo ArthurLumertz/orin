@@ -7,11 +7,14 @@ The Orin Framework is a game framework written in C for maximum performance and 
 I've taken some inspiration from SDL and RayLib to not make it extremely difficult nor lack
 any low-level aspects of game development.
 
+## Wrappers
+The Orin Framework is also available for the following languages:
+- [Python](./python/)
+
 In future versions, I might wrap it to other languages such as:
 - C++
 - C#
 - Java
-- Python
 
 ## Features
 - Display Management
