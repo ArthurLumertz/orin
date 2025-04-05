@@ -1,4 +1,4 @@
-# What is This?
+# The Framework
 The Orin Framework is a game framework written in C for maximum performance and portability.
 I've taken some inspiration from SDL and RayLib to not make it extremely difficult nor lack
 any low-level aspects of game development.
