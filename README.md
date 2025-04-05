@@ -33,9 +33,11 @@ As of the latest version, the Orin Framework only relies in STB Image.
  * - Create a window
  * - Set up a camera and shader
  * - Render a rectangle centered in the center of the screen
+ * - Basic keyboard and mouse input
  */
 
 #include <orin.h>
+#include <stdio.h>
 
 int main() {
     // DisplayMode contains the width and the height of the screen
@@ -54,9 +56,6 @@ int main() {
      * CreateDefaultShader() returns a basic shader with the intention of being
      * used for simple or prototype games, you can write your own shaders and
      * load them here using CreateShader(vertexFile, fragmentFile)
-     *
-     * IMPORTANT: The default shader does NOT work with any other version
-     * that is not OpenGL 3.3 specified in CreateDisplay()!
      */
     Shader *shader = CreateDefaultShader();
 
@@ -68,10 +67,35 @@ int main() {
     camera.position = (Vector2f) { 0, 0 }; // Base (x: 0, y: 0) position
     camera.zoom = 1; // Zoom set to 1 (default)
 
+    // Create rectangle position
+    Vector2f position = { 0, 0 };
+
     // Game loop, while the display shouldn't close
     while (!DisplayShouldClose(display)) {
         // Clear the background buffer with red
         ClearBackground(RED);
+
+        /**
+         * When we press the down arrow key, the position will
+         * shift 0.01 pixels per frame
+         *
+         * IsKeyDown(Key)
+         * IsKeyReleased(Key)
+         */
+        if (IsKeyDown(KEY_DOWN)) {
+            position.y += 0.01f;
+        }
+
+        /**
+         * When we release the left mouse button, the position will
+         * shift to the right by 100 pixels
+         *
+         * IsMouseButtonDown(Button)
+         * IsMouseButtonReleased(Button)
+         */
+        if (IsButtonReleased(MOUSE_BUTTON_LEFT)) {
+            position.x += 100.0f;
+        }
 
         /**
          * BeginDrawing(Shader, Camera2D)
@@ -87,7 +111,6 @@ int main() {
         Vector2f size = { 64, 64 }; // Size is 64x64
 
         // Making the position centered on the display
-        Vector2f position = { (displayMode.width - size.x) / 2, (displayMode.height - size.y) / 2 };
 
         /**
          * DrawRectangle(Vector2f position, Vector2 size, Color color)
