@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="orin-framework-python-512x" width="256" >
+</p>
+
 # Orin Framework - Python Wrapper
 This is the python wrapper available for the Orin Framework.
 It's in its infancy, so don't expect it to perform as better as the native version
