@@ -330,7 +330,7 @@ if system_platform == "Darwin":
 elif system_platform == "Linux":
     liborin = ctypes.CDLL("orin.so")
 elif system_platform == "Windows":
-    liborin = ctypes.CDLL("orin.dll")
+    liborin = ctypes.CDLL(os.path.abspath("orin.dll"))
 else:
     raise RuntimeError(f"Unsupported OS: {system_platform}")
 
