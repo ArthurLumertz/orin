@@ -10,6 +10,8 @@ especially since it's written in python.
 Anyways, it basically wraps the whole framework into the python environment.
 
 ## Disclaimer
+***This python wrapper is using Orin Framework 0.0.9a!***
+
 As of now, I can only provide the `.dylib` built Orin Framework dynamic library,
 I will export a Windows x86 and x64, and Linux dynamic libraries later on.
 As of now, you can simply download the Orin Framework (C) and built it yourself.
