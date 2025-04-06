@@ -1,11 +1,11 @@
 #include "input.h"
 #include "../orin.h"
 
-static int keysDown[KEY_LAST] = { 0 };
-static int keysReleased[KEY_LAST] = { 0 };
+static bool keysDown[KEY_LAST] = { 0 };
+static bool keysReleased[KEY_LAST] = { 0 };
 
-static int buttonsDown[MOUSE_BUTTON_LAST] = { 0 };
-static int buttonsReleased[MOUSE_BUTTON_LAST] = { 0 };
+static bool buttonsDown[BUTTON_LAST] = { 0 };
+static bool buttonsReleased[BUTTON_LAST] = { 0 };
 
 static float prevMouseX;
 static float prevMouseY;
@@ -25,7 +25,7 @@ void Internal_KeyCallback(GLFWwindow* window, int key, int scancode, int action,
 }
 
 void Internal_MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    if (button < 0 || button >= MOUSE_BUTTON_LAST) {
+    if (button < 0 || button >= BUTTON_LAST) {
         return;
     }
     buttonsDown[button] = action != GLFW_RELEASE;
@@ -51,22 +51,22 @@ Vector2f Internal_GetMouseDelta() {
     return (Vector2f){ mouseDeltaX, mouseDeltaY };
 }
 
-int Internal_IsKeyDown(int key) {
+bool Internal_IsKeyDown(Key key) {
     return keysDown[key];
 }
 
-int Internal_IsKeyReleased(int key) {
-    int result = keysReleased[key];
+bool Internal_IsKeyReleased(Key key) {
+    bool result = keysReleased[key];
     keysReleased[key] = 0;
     return result;
 }
 
-int Internal_IsButtonDown(int button) {
+bool Internal_IsButtonDown(Button button) {
     return buttonsDown[button];
 }
 
-int Internal_IsButtonReleased(int button) {
-    int result = buttonsReleased[button];
+bool Internal_IsButtonReleased(Button button) {
+    bool result = buttonsReleased[button];
     buttonsReleased[button] = 0;
     return result;
 }

@@ -1,5 +1,5 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef ORIN_DISPLAY_H
+#define ORIN_DISPLAY_H
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -17,7 +17,7 @@ void Internal_DestroyDisplay(Display* display);
 void Internal_SetDisplaySize(Display* display, int width, int height);
 void Internal_SetDisplayTitle(Display* display, const char *title);
 
-void Internal_UseVSync(int sync);
+void Internal_UseVSync(bool sync);
 
 #ifdef __cplusplus
 }

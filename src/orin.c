@@ -8,7 +8,6 @@
 #include "internal/model.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <complex.h>
 #include <stb_image.h>
 
 #include "internal/input.h"
@@ -43,10 +42,9 @@ void SetDisplayTitle(Display* display, const char *title) {
     Internal_SetDisplayTitle(display, title);
 }
 
-void UseVSync(int sync) {
+void UseVSync(bool sync) {
     Internal_UseVSync(sync);
 }
-
 
 void ClearBackground(Color color) {
     Internal_ClearBackground(color);
@@ -188,20 +186,19 @@ void SetUniformMatrix4f(Shader *shader, const char *name, Matrix4f *value) {
     Internal_SetUniformMatrix4f(shader, name, value);
 }
 
-
-int IsKeyDown(int key) {
+bool IsKeyDown(Key key) {
     return Internal_IsKeyDown(key);
 }
 
-int IsKeyReleased(int key) {
+bool IsKeyReleased(Key key) {
     return Internal_IsKeyReleased(key);
 }
 
-int IsButtonDown(int button) {
+bool IsButtonDown(Button button) {
     return Internal_IsButtonDown(button);
 }
 
-int IsButtonReleased(int button) {
+bool IsButtonReleased(Button button) {
     return Internal_IsButtonReleased(button);
 }
 
@@ -211,4 +208,80 @@ Vector2f GetMousePosition() {
 
 Vector2f GetMouseDelta() {
     return Internal_GetMouseDelta();
+}
+
+bool RectangleIntersects(Rectangle a, Rectangle b) {
+    return (a.x < b.x + b.width &&
+            a.x + a.width > b.x &&
+            a.y < b.y + b.height &&
+            a.y + a.height > b.y);
+}
+
+bool RectangleIIntersects(RectangleI a, RectangleI b) {
+    return (a.x < b.x + b.width &&
+            a.x + a.width > b.x &&
+            a.y < b.y + b.height &&
+            a.y + a.height > b.y);
+}
+
+bool RectangleContains(Rectangle a, Rectangle b) {
+    return (b.x >= a.x &&
+            b.x + b.width <= a.x + a.width &&
+            b.y >= a.y &&
+            b.y + b.height <= a.y + a.height);
+}
+
+bool RectangleIContains(RectangleI a, RectangleI b) {
+    return (b.x >= a.x &&
+            b.x + b.width <= a.x + a.width &&
+            b.y >= a.y &&
+            b.y + b.height <= a.y + a.height);
+}
+
+bool BoundingBoxIntersects(BoundingBox a, BoundingBox b) {
+    return (a.min.x <= b.max.x && a.max.x >= b.min.x &&
+            a.min.y <= b.max.y && a.max.y >= b.min.y &&
+            a.min.z <= b.max.z && a.max.z >= b.min.z);
+}
+
+bool BoundingBoxIIntersects(BoundingBoxI a, BoundingBoxI b) {
+    return (a.min.x <= b.max.x && a.max.x >= b.min.x &&
+            a.min.y <= b.max.y && a.max.y >= b.min.y &&
+            a.min.z <= b.max.z && a.max.z >= b.min.z);
+}
+
+bool BoundingBoxContains(BoundingBox a, BoundingBox b) {
+    return (b.min.x >= a.min.x && b.max.x <= a.max.x &&
+            b.min.y >= a.min.y && b.max.y <= a.max.y &&
+            b.min.z >= a.min.z && b.max.z <= a.max.z);
+}
+
+bool BoundingBoxIContains(BoundingBoxI a, BoundingBoxI b) {
+    return (b.min.x >= a.min.x && b.max.x <= a.max.x &&
+            b.min.y >= a.min.y && b.max.y <= a.max.y &&
+            b.min.z >= a.min.z && b.max.z <= a.max.z);
+}
+
+bool PointInRectangle(Rectangle rectangle, Vector2f point) {
+    return (point.x >= rectangle.x &&
+            point.x <= rectangle.x + rectangle.width &&
+            point.y >= rectangle.y &&
+            point.y <= rectangle.y + rectangle.height);
+}
+
+bool PointIInRectangle(Rectangle rectangle, Vector2i point) {
+    return (point.x >= rectangle.x &&
+            point.x <= rectangle.x + rectangle.width &&
+            point.y >= rectangle.y &&
+            point.y <= rectangle.y + rectangle.height);
+}
+
+Rectangle GetCameraViewport(Camera2D camera) {
+    float halfWidth  = (float)currentDisplay->displayMode.width  / (2.0f * camera.zoom);
+    float halfHeight = (float)currentDisplay->displayMode.height / (2.0f * camera.zoom);
+
+    float width  = halfWidth * 2.0f;
+    float height = halfHeight * 2.0f;
+
+    return (Rectangle){ camera.position.x, camera.position.y, width, height };
 }

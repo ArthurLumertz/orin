@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_H
-#define GRAPHICS_H
+#ifndef ORIN_GRAPHICS_H
+#define ORIN_GRAPHICS_H
 
 #include "../orin.h"
 

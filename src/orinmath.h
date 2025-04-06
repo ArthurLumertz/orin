@@ -8,17 +8,17 @@ extern "C" {
 #endif
 
 
-Matrix4f IdentityMatrix4f();
-Matrix4f TranslateMatrix4f(Matrix4f matrix, Vector3f translation);
-Matrix4f ScaleMatrix4f(Matrix4f matrix, Vector3f scale);
-Matrix4f RotateMatrix4f(Matrix4f matrix, Vector3f rotation);
-Matrix4f MultiplyMatrix4f(Matrix4f m1, Matrix4f m2);
+void IdentityMatrix4f(Matrix4f *result);
+void TranslateMatrix4f(Matrix4f *result, const Matrix4f *matrix, Vector3f translation);
+void ScaleMatrix4f(Matrix4f *result, const Matrix4f *matrix, Vector3f scale);
+void RotateMatrix4f(Matrix4f *result, const Matrix4f *matrix, Vector3f rotation);
+void MultiplyMatrix4f(Matrix4f *result, const Matrix4f *m1, const Matrix4f *m2);
 
-Matrix4f InverseMatrix4f(Matrix4f m);
-Matrix4f TransposeMatrix4f(Matrix4f m);
-Matrix4f InverseTransposeMatrix4f(Matrix4f m);
+void InverseMatrix4f(Matrix4f *result, const Matrix4f *m);
+void TransposeMatrix4f(Matrix4f *result, const Matrix4f *m);
+void InverseTransposeMatrix4f(Matrix4f *result, const Matrix4f *m);
 
-Matrix4f OrthoMatrix4f(float left, float right, float bottom, float top, float near, float far);
+void OrthoMatrix4f(Matrix4f *result, float left, float right, float bottom, float top, float near, float far);
 
 float DegreesToRadians(float degrees);
 float RadiansToDegrees(float radians);

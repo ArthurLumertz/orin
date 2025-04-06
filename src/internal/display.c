@@ -10,7 +10,7 @@ Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int 
     }
 
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_RESIZABLE, args & RESIZABLE);
+    glfwWindowHint(GLFW_RESIZABLE, (args & RESIZABLE) ? GLFW_TRUE : GLFW_FALSE);
 
     int contextVersionMajor = 2;
     int contextVersionMinor = 1;
@@ -74,10 +74,11 @@ Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int 
     display->handler = window;
     display->displayMode = displayMode;
 
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    if (args & OPENGL_21) {
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
     return display;
 }
 
@@ -122,6 +123,6 @@ void Internal_SetDisplayTitle(Display* display, const char *title) {
     glfwSetWindowTitle(display->handler, title);
 }
 
-void Internal_UseVSync(int sync) {
+void Internal_UseVSync(bool sync) {
     glfwSwapInterval(sync ? 1 : 0);
 }

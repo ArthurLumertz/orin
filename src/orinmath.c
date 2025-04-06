@@ -1,45 +1,43 @@
 #include "orinmath.h"
 #include <math.h>
-
-/* ======================= */
-/*      Utils Impl      */
-/* ======================= */
+#include <stdlib.h>
+#include <string.h>
 
 Vector4f ColorToVector4f(Color color) {
     return (Vector4f) { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
 }
 
-
-/* ======================= */
-/*      Matrix4f Impl      */
-/* ======================= */
-
-Matrix4f IdentityMatrix4f() {
-    Matrix4f matrix = {0};
-    matrix.m00 = 1.0f;
-    matrix.m11 = 1.0f;
-    matrix.m22 = 1.0f;
-    matrix.m33 = 1.0f;
-    return matrix;
+void IdentityMatrix4f(Matrix4f *result) {
+    memset(result, 0, sizeof(Matrix4f));
+    result->m00 = 1.0f;
+    result->m11 = 1.0f;
+    result->m22 = 1.0f;
+    result->m33 = 1.0f;
 }
 
-Matrix4f TranslateMatrix4f(Matrix4f matrix, Vector3f translation) {
-    Matrix4f translationMatrix = IdentityMatrix4f();
+void TranslateMatrix4f(Matrix4f *result, const Matrix4f *matrix, Vector3f translation) {
+    Matrix4f translationMatrix;
+    IdentityMatrix4f(&translationMatrix);
+
     translationMatrix.m03 = translation.x;
     translationMatrix.m13 = translation.y;
     translationMatrix.m23 = translation.z;
-    return MultiplyMatrix4f(translationMatrix, matrix);
+
+    MultiplyMatrix4f(result, &translationMatrix, matrix);
 }
 
-Matrix4f ScaleMatrix4f(Matrix4f matrix, Vector3f scale) {
-    Matrix4f scaleMatrix = IdentityMatrix4f();
+void ScaleMatrix4f(Matrix4f *result, const Matrix4f *matrix, Vector3f scale) {
+    Matrix4f scaleMatrix;
+    IdentityMatrix4f(&scaleMatrix);
+
     scaleMatrix.m00 = scale.x;
     scaleMatrix.m11 = scale.y;
     scaleMatrix.m22 = scale.z;
-    return MultiplyMatrix4f(matrix, scaleMatrix);
+
+    MultiplyMatrix4f(result, &scaleMatrix, matrix);
 }
 
-Matrix4f RotateMatrix4f(Matrix4f matrix, Vector3f rotation) {
+void RotateMatrix4f(Matrix4f *result, const Matrix4f *matrix, Vector3f rotation) {
     float cosX = cosf(rotation.x);
     float sinX = sinf(rotation.x);
     float cosY = cosf(rotation.y);
@@ -47,7 +45,8 @@ Matrix4f RotateMatrix4f(Matrix4f matrix, Vector3f rotation) {
     float cosZ = cosf(rotation.z);
     float sinZ = sinf(rotation.z);
 
-    Matrix4f rotationMatrix = IdentityMatrix4f();
+    Matrix4f rotationMatrix;
+    IdentityMatrix4f(&rotationMatrix);
 
     rotationMatrix.m00 = cosY * cosZ;
     rotationMatrix.m01 = -cosY * sinZ;
@@ -61,37 +60,38 @@ Matrix4f RotateMatrix4f(Matrix4f matrix, Vector3f rotation) {
     rotationMatrix.m21 = sinX * cosZ + cosX * sinY * sinZ;
     rotationMatrix.m22 = cosX * cosY;
 
-    return MultiplyMatrix4f(matrix, rotationMatrix);
+    MultiplyMatrix4f(result, &rotationMatrix, matrix);
 }
 
-Matrix4f MultiplyMatrix4f(Matrix4f m1, Matrix4f m2) {
-    Matrix4f result;
+void MultiplyMatrix4f(Matrix4f *result, const Matrix4f *m1, const Matrix4f *m2) {
+    Matrix4f temp;
 
-    result.m00 = m1.m00 * m2.m00 + m1.m01 * m2.m10 + m1.m02 * m2.m20 + m1.m03 * m2.m30;
-    result.m01 = m1.m00 * m2.m01 + m1.m01 * m2.m11 + m1.m02 * m2.m21 + m1.m03 * m2.m31;
-    result.m02 = m1.m00 * m2.m02 + m1.m01 * m2.m12 + m1.m02 * m2.m22 + m1.m03 * m2.m32;
-    result.m03 = m1.m00 * m2.m03 + m1.m01 * m2.m13 + m1.m02 * m2.m23 + m1.m03 * m2.m33;
+    temp.m00 = m1->m00 * m2->m00 + m1->m01 * m2->m10 + m1->m02 * m2->m20 + m1->m03 * m2->m30;
+    temp.m01 = m1->m00 * m2->m01 + m1->m01 * m2->m11 + m1->m02 * m2->m21 + m1->m03 * m2->m31;
+    temp.m02 = m1->m00 * m2->m02 + m1->m01 * m2->m12 + m1->m02 * m2->m22 + m1->m03 * m2->m32;
+    temp.m03 = m1->m00 * m2->m03 + m1->m01 * m2->m13 + m1->m02 * m2->m23 + m1->m03 * m2->m33;
 
-    result.m10 = m1.m10 * m2.m00 + m1.m11 * m2.m10 + m1.m12 * m2.m20 + m1.m13 * m2.m30;
-    result.m11 = m1.m10 * m2.m01 + m1.m11 * m2.m11 + m1.m12 * m2.m21 + m1.m13 * m2.m31;
-    result.m12 = m1.m10 * m2.m02 + m1.m11 * m2.m12 + m1.m12 * m2.m22 + m1.m13 * m2.m32;
-    result.m13 = m1.m10 * m2.m03 + m1.m11 * m2.m13 + m1.m12 * m2.m23 + m1.m13 * m2.m33;
+    temp.m10 = m1->m10 * m2->m00 + m1->m11 * m2->m10 + m1->m12 * m2->m20 + m1->m13 * m2->m30;
+    temp.m11 = m1->m10 * m2->m01 + m1->m11 * m2->m11 + m1->m12 * m2->m21 + m1->m13 * m2->m31;
+    temp.m12 = m1->m10 * m2->m02 + m1->m11 * m2->m12 + m1->m12 * m2->m22 + m1->m13 * m2->m32;
+    temp.m13 = m1->m10 * m2->m03 + m1->m11 * m2->m13 + m1->m12 * m2->m23 + m1->m13 * m2->m33;
 
-    result.m20 = m1.m20 * m2.m00 + m1.m21 * m2.m10 + m1.m22 * m2.m20 + m1.m23 * m2.m30;
-    result.m21 = m1.m20 * m2.m01 + m1.m21 * m2.m11 + m1.m22 * m2.m21 + m1.m23 * m2.m31;
-    result.m22 = m1.m20 * m2.m02 + m1.m21 * m2.m12 + m1.m22 * m2.m22 + m1.m23 * m2.m32;
-    result.m23 = m1.m20 * m2.m03 + m1.m21 * m2.m13 + m1.m22 * m2.m23 + m1.m23 * m2.m33;
+    temp.m20 = m1->m20 * m2->m00 + m1->m21 * m2->m10 + m1->m22 * m2->m20 + m1->m23 * m2->m30;
+    temp.m21 = m1->m20 * m2->m01 + m1->m21 * m2->m11 + m1->m22 * m2->m21 + m1->m23 * m2->m31;
+    temp.m22 = m1->m20 * m2->m02 + m1->m21 * m2->m12 + m1->m22 * m2->m22 + m1->m23 * m2->m32;
+    temp.m23 = m1->m20 * m2->m03 + m1->m21 * m2->m13 + m1->m22 * m2->m23 + m1->m23 * m2->m33;
 
-    result.m30 = m1.m30 * m2.m00 + m1.m31 * m2.m10 + m1.m32 * m2.m20 + m1.m33 * m2.m30;
-    result.m31 = m1.m30 * m2.m01 + m1.m31 * m2.m11 + m1.m32 * m2.m21 + m1.m33 * m2.m31;
-    result.m32 = m1.m30 * m2.m02 + m1.m31 * m2.m12 + m1.m32 * m2.m22 + m1.m33 * m2.m32;
-    result.m33 = m1.m30 * m2.m03 + m1.m31 * m2.m13 + m1.m32 * m2.m23 + m1.m33 * m2.m33;
+    temp.m30 = m1->m30 * m2->m00 + m1->m31 * m2->m10 + m1->m32 * m2->m20 + m1->m33 * m2->m30;
+    temp.m31 = m1->m30 * m2->m01 + m1->m31 * m2->m11 + m1->m32 * m2->m21 + m1->m33 * m2->m31;
+    temp.m32 = m1->m30 * m2->m02 + m1->m31 * m2->m12 + m1->m32 * m2->m22 + m1->m33 * m2->m32;
+    temp.m33 = m1->m30 * m2->m03 + m1->m31 * m2->m13 + m1->m32 * m2->m23 + m1->m33 * m2->m33;
 
-    return result;
+    *result = temp;
 }
 
-Matrix4f OrthoMatrix4f(float left, float right, float bottom, float top, float near, float far) {
-    Matrix4f matrix = IdentityMatrix4f();
+void OrthoMatrix4f(Matrix4f *result, float left, float right, float bottom, float top, float near, float far) {
+    Matrix4f matrix;
+    IdentityMatrix4f(&matrix);
 
     matrix.m00 = 2.0f / (right - left);
     matrix.m11 = 2.0f / (top - bottom);
@@ -101,72 +101,125 @@ Matrix4f OrthoMatrix4f(float left, float right, float bottom, float top, float n
     matrix.m23 = -(far + near) / (far - near);
     matrix.m33 = 1.0f;
 
-    return matrix;
+    *result = matrix;
 }
 
-Matrix4f InverseMatrix4f(Matrix4f m) {
-    Matrix4f result = {0};
+void InverseMatrix4f(Matrix4f* result, const Matrix4f* m) {
+    float det =
+        m->m00 * (m->m11 * (m->m22 * m->m33 - m->m23 * m->m32) -
+                  m->m12 * (m->m21 * m->m33 - m->m23 * m->m31) +
+                  m->m13 * (m->m21 * m->m32 - m->m22 * m->m31)) -
+        m->m01 * (m->m10 * (m->m22 * m->m33 - m->m23 * m->m32) -
+                  m->m12 * (m->m20 * m->m33 - m->m23 * m->m30) +
+                  m->m13 * (m->m20 * m->m32 - m->m22 * m->m30)) +
+        m->m02 * (m->m10 * (m->m21 * m->m33 - m->m23 * m->m31) -
+                  m->m11 * (m->m20 * m->m33 - m->m23 * m->m30) +
+                  m->m13 * (m->m20 * m->m31 - m->m21 * m->m30)) -
+        m->m03 * (m->m10 * (m->m21 * m->m32 - m->m22 * m->m31) -
+                  m->m11 * (m->m20 * m->m32 - m->m22 * m->m30) +
+                  m->m12 * (m->m20 * m->m31 - m->m21 * m->m30));
 
-    float det = m.m00 * (m.m11 * (m.m22 * m.m33 - m.m23 * m.m32) - m.m12 * (m.m21 * m.m33 - m.m23 * m.m31) + m.m13 * (m.m21 * m.m32 - m.m22 * m.m31))
-                - m.m01 * (m.m10 * (m.m22 * m.m33 - m.m23 * m.m32) - m.m12 * (m.m20 * m.m33 - m.m23 * m.m30) + m.m13 * (m.m20 * m.m32 - m.m22 * m.m30))
-                + m.m02 * (m.m10 * (m.m21 * m.m33 - m.m23 * m.m31) - m.m11 * (m.m20 * m.m33 - m.m23 * m.m30) + m.m13 * (m.m20 * m.m31 - m.m21 * m.m30))
-                - m.m03 * (m.m10 * (m.m21 * m.m32 - m.m22 * m.m31) - m.m11 * (m.m20 * m.m32 - m.m22 * m.m30) + m.m12 * (m.m20 * m.m31 - m.m21 * m.m30));
-
-    if (det == 0) {
-        return result;
+    if (det == 0.0f) {
+        memset(result, 0, sizeof(Matrix4f));
+        return;
     }
 
     float invDet = 1.0f / det;
+    Matrix4f inv;
 
-    result.m00 = (m.m11 * (m.m22 * m.m33 - m.m23 * m.m32) - m.m12 * (m.m21 * m.m33 - m.m23 * m.m31) + m.m13 * (m.m21 * m.m32 - m.m22 * m.m31)) * invDet;
-    result.m01 = -(m.m01 * (m.m22 * m.m33 - m.m23 * m.m32) - m.m02 * (m.m21 * m.m33 - m.m23 * m.m31) + m.m03 * (m.m21 * m.m32 - m.m22 * m.m31)) * invDet;
-    result.m02 = (m.m01 * (m.m12 * m.m33 - m.m13 * m.m32) - m.m02 * (m.m11 * m.m33 - m.m13 * m.m31) + m.m03 * (m.m11 * m.m32 - m.m12 * m.m31)) * invDet;
-    result.m03 = -(m.m01 * (m.m12 * m.m23 - m.m13 * m.m22) - m.m02 * (m.m11 * m.m23 - m.m13 * m.m21) + m.m03 * (m.m11 * m.m22 - m.m12 * m.m21)) * invDet;
+    inv.m00 =  (m->m11 * (m->m22 * m->m33 - m->m23 * m->m32) -
+                m->m12 * (m->m21 * m->m33 - m->m23 * m->m31) +
+                m->m13 * (m->m21 * m->m32 - m->m22 * m->m31)) * invDet;
 
-    result.m10 = -(m.m10 * (m.m22 * m.m33 - m.m23 * m.m32) - m.m12 * (m.m20 * m.m33 - m.m23 * m.m30) + m.m13 * (m.m20 * m.m32 - m.m22 * m.m30)) * invDet;
-    result.m11 = (m.m00 * (m.m22 * m.m33 - m.m23 * m.m32) - m.m02 * (m.m20 * m.m33 - m.m23 * m.m30) + m.m03 * (m.m20 * m.m32 - m.m22 * m.m30)) * invDet;
-    result.m12 = -(m.m00 * (m.m12 * m.m33 - m.m13 * m.m32) - m.m02 * (m.m10 * m.m33 - m.m13 * m.m30) + m.m03 * (m.m10 * m.m32 - m.m12 * m.m30)) * invDet;
-    result.m13 = (m.m00 * (m.m12 * m.m23 - m.m13 * m.m22) - m.m02 * (m.m10 * m.m23 - m.m13 * m.m20) + m.m03 * (m.m10 * m.m22 - m.m12 * m.m20)) * invDet;
+    inv.m01 = -(m->m01 * (m->m22 * m->m33 - m->m23 * m->m32) -
+                m->m02 * (m->m21 * m->m33 - m->m23 * m->m31) +
+                m->m03 * (m->m21 * m->m32 - m->m22 * m->m31)) * invDet;
 
-    result.m20 = (m.m10 * (m.m21 * m.m33 - m.m23 * m.m31) - m.m11 * (m.m20 * m.m33 - m.m23 * m.m30) + m.m13 * (m.m20 * m.m31 - m.m21 * m.m30)) * invDet;
-    result.m21 = -(m.m00 * (m.m21 * m.m33 - m.m23 * m.m31) - m.m01 * (m.m20 * m.m33 - m.m23 * m.m30) + m.m03 * (m.m20 * m.m31 - m.m21 * m.m30)) * invDet;
-    result.m22 = (m.m00 * (m.m11 * m.m33 - m.m13 * m.m31) - m.m01 * (m.m10 * m.m33 - m.m13 * m.m30) + m.m03 * (m.m10 * m.m31 - m.m11 * m.m30)) * invDet;
-    result.m23 = -(m.m00 * (m.m11 * m.m23 - m.m13 * m.m21) - m.m01 * (m.m10 * m.m23 - m.m13 * m.m20) + m.m03 * (m.m10 * m.m21 - m.m11 * m.m20)) * invDet;
+    inv.m02 =  (m->m01 * (m->m12 * m->m33 - m->m13 * m->m32) -
+                m->m02 * (m->m11 * m->m33 - m->m13 * m->m31) +
+                m->m03 * (m->m11 * m->m32 - m->m12 * m->m31)) * invDet;
 
-    result.m30 = -(m.m10 * (m.m21 * m.m32 - m.m22 * m.m31) - m.m11 * (m.m20 * m.m32 - m.m22 * m.m30) + m.m12 * (m.m20 * m.m31 - m.m21 * m.m30)) * invDet;
-    result.m31 = (m.m00 * (m.m21 * m.m32 - m.m22 * m.m31) - m.m01 * (m.m20 * m.m32 - m.m22 * m.m30) + m.m02 * (m.m20 * m.m31 - m.m21 * m.m30)) * invDet;
-    result.m32 = -(m.m00 * (m.m11 * m.m32 - m.m12 * m.m31) - m.m01 * (m.m10 * m.m32 - m.m12 * m.m30) + m.m02 * (m.m10 * m.m31 - m.m11 * m.m30)) * invDet;
-    result.m33 = (m.m00 * (m.m11 * m.m22 - m.m12 * m.m21) - m.m01 * (m.m10 * m.m22 - m.m12 * m.m20) + m.m02 * (m.m10 * m.m21 - m.m11 * m.m20)) * invDet;
+    inv.m03 = -(m->m01 * (m->m12 * m->m23 - m->m13 * m->m22) -
+                m->m02 * (m->m11 * m->m23 - m->m13 * m->m21) +
+                m->m03 * (m->m11 * m->m22 - m->m12 * m->m21)) * invDet;
 
-    return result;
+    inv.m10 = -(m->m10 * (m->m22 * m->m33 - m->m23 * m->m32) -
+                m->m12 * (m->m20 * m->m33 - m->m23 * m->m30) +
+                m->m13 * (m->m20 * m->m32 - m->m22 * m->m30)) * invDet;
+
+    inv.m11 =  (m->m00 * (m->m22 * m->m33 - m->m23 * m->m32) -
+                m->m02 * (m->m20 * m->m33 - m->m23 * m->m30) +
+                m->m03 * (m->m20 * m->m32 - m->m22 * m->m30)) * invDet;
+
+    inv.m12 = -(m->m00 * (m->m12 * m->m33 - m->m13 * m->m32) -
+                m->m02 * (m->m10 * m->m33 - m->m13 * m->m30) +
+                m->m03 * (m->m10 * m->m32 - m->m12 * m->m30)) * invDet;
+
+    inv.m13 =  (m->m00 * (m->m12 * m->m23 - m->m13 * m->m22) -
+                m->m02 * (m->m10 * m->m23 - m->m13 * m->m20) +
+                m->m03 * (m->m10 * m->m22 - m->m12 * m->m20)) * invDet;
+
+    inv.m20 =  (m->m10 * (m->m21 * m->m33 - m->m23 * m->m31) -
+                m->m11 * (m->m20 * m->m33 - m->m23 * m->m30) +
+                m->m13 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+
+    inv.m21 = -(m->m00 * (m->m21 * m->m33 - m->m23 * m->m31) -
+                m->m01 * (m->m20 * m->m33 - m->m23 * m->m30) +
+                m->m03 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+
+    inv.m22 =  (m->m00 * (m->m11 * m->m33 - m->m13 * m->m31) -
+                m->m01 * (m->m10 * m->m33 - m->m13 * m->m30) +
+                m->m03 * (m->m10 * m->m31 - m->m11 * m->m30)) * invDet;
+
+    inv.m23 = -(m->m00 * (m->m11 * m->m23 - m->m13 * m->m21) -
+                m->m01 * (m->m10 * m->m23 - m->m13 * m->m20) +
+                m->m03 * (m->m10 * m->m21 - m->m11 * m->m20)) * invDet;
+
+    inv.m30 = -(m->m10 * (m->m21 * m->m32 - m->m22 * m->m31) -
+                m->m11 * (m->m20 * m->m32 - m->m22 * m->m30) +
+                m->m12 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+
+    inv.m31 =  (m->m00 * (m->m21 * m->m32 - m->m22 * m->m31) -
+                m->m01 * (m->m20 * m->m32 - m->m22 * m->m30) +
+                m->m02 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+
+    inv.m32 = -(m->m00 * (m->m11 * m->m32 - m->m12 * m->m31) -
+                m->m01 * (m->m10 * m->m32 - m->m12 * m->m30) +
+                m->m02 * (m->m10 * m->m31 - m->m11 * m->m30)) * invDet;
+
+    inv.m33 =  (m->m00 * (m->m11 * m->m22 - m->m12 * m->m21) -
+                m->m01 * (m->m10 * m->m22 - m->m12 * m->m20) +
+                m->m02 * (m->m10 * m->m21 - m->m11 * m->m20)) * invDet;
+
+    *result = inv;
 }
 
-Matrix4f TransposeMatrix4f(Matrix4f m) {
-    Matrix4f result = {0};
+void TransposeMatrix4f(Matrix4f* result, const Matrix4f* m) {
+    result->m00 = m->m00;
+    result->m01 = m->m10;
+    result->m02 = m->m20;
+    result->m03 = m->m30;
 
-    result.m00 = m.m00;
-    result.m01 = m.m10;
-    result.m02 = m.m20;
-    result.m03 = m.m30;
-    result.m10 = m.m01;
-    result.m11 = m.m11;
-    result.m12 = m.m21;
-    result.m13 = m.m31;
-    result.m20 = m.m02;
-    result.m21 = m.m12;
-    result.m22 = m.m22;
-    result.m23 = m.m32;
-    result.m30 = m.m03;
-    result.m31 = m.m13;
-    result.m32 = m.m23;
-    result.m33 = m.m33;
+    result->m10 = m->m01;
+    result->m11 = m->m11;
+    result->m12 = m->m21;
+    result->m13 = m->m31;
 
-    return result;
+    result->m20 = m->m02;
+    result->m21 = m->m12;
+    result->m22 = m->m22;
+    result->m23 = m->m32;
+
+    result->m30 = m->m03;
+    result->m31 = m->m13;
+    result->m32 = m->m23;
+    result->m33 = m->m33;
 }
 
-Matrix4f InverseTransposeMatrix4f(Matrix4f m) {
-    Matrix4f inverse = InverseMatrix4f(m);
-    return TransposeMatrix4f(inverse);
+void InverseTransposeMatrix4f(Matrix4f* result, const Matrix4f* m) {
+    Matrix4f inverse;
+    InverseMatrix4f(&inverse, m);
+    TransposeMatrix4f(result, &inverse);
 }
 
 float DegreesToRadians(float degrees) {

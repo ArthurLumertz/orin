@@ -1,5 +1,5 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef ORIN_MODEL_H
+#define ORIN_MODEL_H
 
 #include "./orin.h"
 

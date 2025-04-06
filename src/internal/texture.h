@@ -1,5 +1,5 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#ifndef ORIN_TEXTURE_H
+#define ORIN_TEXTURE_H
 
 #include "../orin.h"
 

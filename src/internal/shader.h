@@ -1,5 +1,5 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef ORIN_SHADER_H
+#define ORIN_SHADER_H
 
 #include "../orin.h"
 
