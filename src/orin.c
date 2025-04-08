@@ -6,28 +6,34 @@
 #include "internal/texture.h"
 #include "internal/shader.h"
 #include "internal/model.h"
+#include "internal/input.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "internal/input.h"
+#include <time.h>
+#include <stdlib.h>
 
 Shader *currentShader = NULL;
 Camera2D *currentCamera = NULL;
 Display *currentDisplay = NULL;
 
-Display* CreateDisplay(DisplayMode displayMode, const char *title, int args) {
-    Display *display = Internal_CreateDisplay(displayMode, title, args);
+Display* CreateDisplay(int width, int height, const char *title, int args) {
+    Display *display = Internal_CreateDisplay(width, height, title, args);
     currentDisplay = display;
+
+    srand((unsigned int)time(NULL));
+
     return display;
 }
 
-int DisplayShouldClose(Display* display) {
-    return Internal_DisplayShouldClose(display);
+void SetDisplayIcon(Display *display, const char *fileName) {
+    Internal_SetDisplayIcon(display, fileName);
 }
 
-void UpdateDisplay(Display* display) {
-    return Internal_UpdateDisplay(display);
+int DisplayShouldClose(Display* display) {
+    Internal_UpdateDisplay(display);
+    return Internal_DisplayShouldClose(display);
 }
 
 void DestroyDisplay(Display* display) {
@@ -59,16 +65,32 @@ void BeginDrawing(Shader *shader, Camera2D camera) {
     Internal_BeginDrawing(camera, shader, currentDisplay);
 }
 
+void BeginDrawing2D(Camera2D camera) {
+    if (currentShader == NULL) {
+        currentShader = CreateDefaultShader();
+    }
+
+    BeginDrawing(currentShader, camera);
+}
+
 void EndDrawing() {
 
 }
 
-void DrawRectangle(Vector2f position, Vector2f size, Color color) {
-    Internal_DrawRectangle(currentShader, position, size, color);
+void DrawRectangle(float x, float y, float width, float height, Color tint) {
+    Internal_DrawRectangle(currentShader, x, y, width, height, tint);
 }
 
-void DrawTexture(Texture *texture, Vector2f position, Vector2f size, Color color) {
-    Internal_DrawTexture(currentShader, texture, position, size, color);
+void DrawRectangleV(Vector2f position, Vector2f size, Color tint) {
+    DrawRectangle(position.x, position.y, size.x, size.y, tint);
+}
+
+void DrawTexture(Texture *texture, float x, float y, float width, float height, Color tint) {
+    Internal_DrawTexture(currentShader, texture, x, y, width, height, tint);
+}
+
+void DrawTextureV(Texture *texture, Vector2f position, Vector2f size, Color tint) {
+    DrawTexture(texture, position.x, position.y, size.x, size.y, tint);
 }
 
 Texture *LoadTexture(const char *filename, int filter) {
@@ -134,6 +156,14 @@ void DestroyShader(Shader *shader) {
     return Internal_DestroyShader(shader);
 }
 
+int GetShaderLocation(Shader *shader, const char *uniformName) {
+    return Internal_GetShaderLocation(shader, uniformName);
+}
+
+void SetShaderValue(Shader *shader, int location, const void *value, UniformType type) {
+    Internal_SetShaderValue(shader, location, value, type);
+}
+
 Model *CreateModel(Vertex vertices[], size_t vertexCount, unsigned int indices[], size_t indexCount) {
     return Internal_CreateModel(vertices, vertexCount, indices, indexCount);
 }
@@ -142,48 +172,8 @@ void DestroyModel(Model *model) {
     Internal_DestroyModel(model);
 }
 
-void SetColor(Color color) {
-    Internal_SetColor(color, currentShader);
-}
-
-void DrawModel(Model *model, Matrix4f *transform) {
-    Internal_DrawModel(model, transform, currentShader);
-}
-
-void SetUniform1f(Shader *shader, const char *name, float value) {
-    Internal_SetUniform1f(shader, name, value);
-}
-
-void SetUniform2f(Shader *shader, const char *name, Vector2f value) {
-    Internal_SetUniform2f(shader, name, value);
-}
-
-void SetUniform3f(Shader *shader, const char *name, Vector3f value) {
-    Internal_SetUniform3f(shader, name, value);
-}
-
-void SetUniform4f(Shader *shader, const char *name, Vector4f value) {
-    Internal_SetUniform4f(shader, name, value);
-}
-
-void SetUniform1i(Shader *shader, const char *name, int value) {
-    Internal_SetUniform1i(shader, name, value);
-}
-
-void SetUniform2i(Shader *shader, const char *name, Vector2i value) {
-    Internal_SetUniform2i(shader, name, value);
-}
-
-void SetUniform3i(Shader *shader, const char *name, Vector3i value) {
-    Internal_SetUniform3i(shader, name, value);
-}
-
-void SetUniform4i(Shader *shader, const char *name, Vector4i value) {
-    Internal_SetUniform4i(shader, name, value);
-}
-
-void SetUniformMatrix4f(Shader *shader, const char *name, Matrix4f *value) {
-    Internal_SetUniformMatrix4f(shader, name, value);
+void DrawModel(Model *model, Vector3f position, Vector3f scale, Color tint) {
+    Internal_DrawModel(model, position, scale, tint, currentShader);
 }
 
 bool IsKeyDown(Key key) {
@@ -210,70 +200,70 @@ Vector2f GetMouseDelta() {
     return Internal_GetMouseDelta();
 }
 
-bool RectangleIntersects(Rectangle a, Rectangle b) {
-    return (a.x < b.x + b.width &&
-            a.x + a.width > b.x &&
-            a.y < b.y + b.height &&
-            a.y + a.height > b.y);
+bool RectIntersects(Rectangle a, Rectangle b) {
+    return a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y;
 }
 
-bool RectangleIIntersects(RectangleI a, RectangleI b) {
-    return (a.x < b.x + b.width &&
-            a.x + a.width > b.x &&
-            a.y < b.y + b.height &&
-            a.y + a.height > b.y);
+bool RectIIntersects(RectangleI a, RectangleI b) {
+    return a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y;
 }
 
-bool RectangleContains(Rectangle a, Rectangle b) {
-    return (b.x >= a.x &&
-            b.x + b.width <= a.x + a.width &&
-            b.y >= a.y &&
-            b.y + b.height <= a.y + a.height);
+bool RectContains(Rectangle a, Rectangle b) {
+    return b.x >= a.x &&
+        b.y >= a.y &&
+        b.x + b.width <= a.x + a.width &&
+        b.y + b.height <= a.y + a.height;
 }
 
-bool RectangleIContains(RectangleI a, RectangleI b) {
-    return (b.x >= a.x &&
-            b.x + b.width <= a.x + a.width &&
-            b.y >= a.y &&
-            b.y + b.height <= a.y + a.height);
+bool RectIContains(RectangleI a, RectangleI b) {
+    return b.x >= a.x &&
+        b.y >= a.y &&
+        b.x + b.width <= a.x + a.width &&
+        b.y + b.height <= a.y + a.height;
 }
 
-bool BoundingBoxIntersects(BoundingBox a, BoundingBox b) {
-    return (a.min.x <= b.max.x && a.max.x >= b.min.x &&
-            a.min.y <= b.max.y && a.max.y >= b.min.y &&
-            a.min.z <= b.max.z && a.max.z >= b.min.z);
+bool BBoxIntersects(BoundingBox a, BoundingBox b) {
+    return a.min.x <= b.max.x && a.max.x >= b.min.x &&
+        a.min.y <= b.max.y && a.max.y >= b.min.y &&
+        a.min.z <= b.max.z && a.max.z >= b.min.z;
 }
 
-bool BoundingBoxIIntersects(BoundingBoxI a, BoundingBoxI b) {
-    return (a.min.x <= b.max.x && a.max.x >= b.min.x &&
-            a.min.y <= b.max.y && a.max.y >= b.min.y &&
-            a.min.z <= b.max.z && a.max.z >= b.min.z);
+bool BBoxIIntersects(BoundingBoxI a, BoundingBoxI b) {
+    return a.min.x <= b.max.x && a.max.x >= b.min.x &&
+        a.min.y <= b.max.y && a.max.y >= b.min.y &&
+        a.min.z <= b.max.z && a.max.z >= b.min.z;
 }
 
-bool BoundingBoxContains(BoundingBox a, BoundingBox b) {
-    return (b.min.x >= a.min.x && b.max.x <= a.max.x &&
-            b.min.y >= a.min.y && b.max.y <= a.max.y &&
-            b.min.z >= a.min.z && b.max.z <= a.max.z);
+bool BBoxContains(BoundingBox a, BoundingBox b) {
+    return b.min.x >= a.min.x && b.max.x <= a.max.x &&
+        b.min.y >= a.min.y && b.max.y <= a.max.y &&
+        b.min.z >= a.min.z && b.max.z <= a.max.z;
 }
 
-bool BoundingBoxIContains(BoundingBoxI a, BoundingBoxI b) {
-    return (b.min.x >= a.min.x && b.max.x <= a.max.x &&
-            b.min.y >= a.min.y && b.max.y <= a.max.y &&
-            b.min.z >= a.min.z && b.max.z <= a.max.z);
+bool BBoxIContains(BoundingBoxI a, BoundingBoxI b) {
+    return b.min.x >= a.min.x && b.max.x <= a.max.x &&
+        b.min.y >= a.min.y && b.max.y <= a.max.y &&
+        b.min.z >= a.min.z && b.max.z <= a.max.z;
 }
 
-bool PointInRectangle(Rectangle rectangle, Vector2f point) {
-    return (point.x >= rectangle.x &&
-            point.x <= rectangle.x + rectangle.width &&
-            point.y >= rectangle.y &&
-            point.y <= rectangle.y + rectangle.height);
+bool PointInRect(Rectangle rect, Vector2f point) {
+    return point.x >= rect.x &&
+        point.x <= rect.x + rect.width &&
+        point.y >= rect.y &&
+        point.y <= rect.y + rect.height;
 }
 
-bool PointIInRectangle(Rectangle rectangle, Vector2i point) {
-    return (point.x >= rectangle.x &&
-            point.x <= rectangle.x + rectangle.width &&
-            point.y >= rectangle.y &&
-            point.y <= rectangle.y + rectangle.height);
+bool PointInRectI(RectangleI rect, Vector2i point) {
+    return point.x >= rect.x &&
+        point.x <= rect.x + rect.width &&
+        point.y >= rect.y &&
+        point.y <= rect.y + rect.height;
 }
 
 Rectangle GetCameraViewport(Camera2D camera) {
@@ -284,4 +274,24 @@ Rectangle GetCameraViewport(Camera2D camera) {
     float height = halfHeight * 2.0f;
 
     return (Rectangle){ camera.position.x, camera.position.y, width, height };
+}
+
+int GetRandomValue(int min, int max) {
+    return (rand() % (abs(max - min) + 1) + min);
+}
+
+void HideMouse(Display *display, bool hidden) {
+    Internal_SetMouseHidden(display, hidden);
+}
+
+bool IsMouseHidden(Display *display) {
+    return Internal_IsMouseHidden(display);
+}
+
+void DisableMouse(Display *display, bool disabled) {
+    return Internal_DisableMouse(display, disabled);
+}
+
+bool IsMouseDisabled(Display *display) {
+    return Internal_IsMouseDisabled(display);
 }

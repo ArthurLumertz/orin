@@ -1,9 +1,10 @@
 #include "display.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stb_image.h>
 #include "input.h"
 
-Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int args) {
+Display* Internal_CreateDisplay(int width, int height, const char *title, int args) {
     if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize GLFW!\n");
         return NULL;
@@ -39,7 +40,7 @@ Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int 
         #endif
     }
 
-    GLFWwindow *window = glfwCreateWindow(displayMode.width, displayMode.height, title, (args & FULLSCREEN) ? glfwGetPrimaryMonitor() : NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(width, height, title, (args & FULLSCREEN) ? glfwGetPrimaryMonitor() : NULL, NULL);
     if (window == NULL) {
         fprintf(stderr, "Failed to create GLFW window!\n");
         glfwTerminate();
@@ -51,7 +52,7 @@ Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int 
     glfwSetKeyCallback(window, Internal_KeyCallback);
 
     const GLFWvidmode *vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    glfwSetWindowPos(window, (vidmode->width - displayMode.width) / 2, (vidmode->height - displayMode.height) / 2);
+    glfwSetWindowPos(window, (vidmode->width - width) / 2, (vidmode->height - height) / 2);
 
     glfwMakeContextCurrent(window);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -72,7 +73,7 @@ Display* Internal_CreateDisplay(DisplayMode displayMode, const char *title, int 
     }
 
     display->handler = window;
-    display->displayMode = displayMode;
+    display->displayMode = (DisplayMode){ width, height };
 
     if (args & OPENGL_21) {
         glEnable(GL_TEXTURE_2D);
@@ -125,4 +126,38 @@ void Internal_SetDisplayTitle(Display* display, const char *title) {
 
 void Internal_UseVSync(bool sync) {
     glfwSwapInterval(sync ? 1 : 0);
+}
+
+void Internal_SetDisplayIcon(Display *display, const char *fileName) {
+    int width;
+    int height;
+    int channels;
+    unsigned char *pixels = stbi_load(fileName, &width, &height, &channels, 4);
+    if (pixels == NULL) {
+        fprintf(stderr, "Failed to load display icon: %s\n", fileName);
+        return;
+    }
+
+    GLFWimage image;
+    image.width = width;
+    image.height = height;
+    image.pixels = pixels;
+    glfwSetWindowIcon(display->handler, 1, &image);
+    stbi_image_free(pixels);
+}
+
+void Internal_HideMouse(Display *display, bool hidden) {
+    glfwSetInputMode(display->handler, GLFW_CURSOR, (hidden ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL));
+}
+
+bool Internal_IsMouseHidden(Display *display) {
+    return glfwGetInputMode(display->handler, GLFW_CURSOR) == GLFW_CURSOR_HIDDEN;
+}
+
+void Internal_DisableMouse(Display *display, bool disabled) {
+    glfwSetInputMode(display->handler, GLFW_CURSOR, (disabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL));
+}
+
+bool Internal_IsMouseDisabled(Display *display) {
+    return glfwGetInputMode(display->handler, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
 }

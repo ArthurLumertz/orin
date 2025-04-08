@@ -23,7 +23,7 @@ static char *ReadFile(const char *filepath) {
     }
 
     fread(buffer, 1, fileSize, file);
-    buffer[fileSize] = '\0'; // Null-terminate the string
+    buffer[fileSize] = '\0';
 
     fclose(file);
     return buffer;
@@ -116,63 +116,56 @@ void Internal_DestroyShader(Shader *shader) {
     }
 }
 
-static int GetUniformLocation(Shader *shader, const char *name) {
-    int location = glGetUniformLocation(shader->id, name);
+int Internal_GetShaderLocation(Shader *shader, const char *uniformName) {
+    int location = glGetUniformLocation(shader->id, uniformName);
     if (location == -1) {
-        fprintf(stderr, "Warning: Uniform '%s' not found or not used in the shader program\n", name);
+        fprintf(stderr, "Warning: Uniform '%s' not found or not used in the shader program\n", uniformName);
     }
     return location;
 }
 
-void Internal_SetUniform1f(Shader *shader, const char *name, float value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform1f(location, value);
-}
+void Internal_SetShaderValue(Shader *shader, int location, const void *value, UniformType type) {
+    switch (type) {
+    case UNIFORM_FLOAT: {
+        glUniform1f(location, *(float *)value);
+    }
+    case UNIFORM_INT: {
+        glUniform1f(location, *(int *)value);
+    }
+    case UNIFORM_VEC2: {
+        Vector2f v = *(Vector2f *)value;
+        glUniform2f(location, v.x, v.y);
+    }
+    case UNIFORM_VEC2I: {
+        Vector2i v = *(Vector2i *)value;
+        glUniform2i(location, v.x, v.y);
+    }
+    case UNIFORM_VEC3: {
+        Vector3f v = *(Vector3f *)value;
+        glUniform3f(location, v.x, v.y, v.z);
+    }
+    case UNIFORM_VEC3I: {
+        Vector3i v = *(Vector3i *)value;
+        glUniform3i(location, v.x, v.y, v.z);
+    }
+    case UNIFORM_VEC4: {
+        Vector4f v = *(Vector4f *)value;
+        glUniform4f(location, v.x, v.y, v.z, v.w);
+    }
+    case UNIFORM_VEC4I: {
+        Vector4i v = *(Vector4i *)value;
+        glUniform4i(location, v.x, v.y, v.z, v.w);
+    }
+    case UNIFORM_MAT4: {
+        static float values[16];
+        static Matrix4f *mat;
+        mat = (Matrix4f *)value;
+        values[0] = mat->m00; values[1] = mat->m10; values[2] = mat->m20; values[3] = mat->m30;
+        values[4] = mat->m01; values[5] = mat->m11; values[6] = mat->m21; values[7] = mat->m31;
+        values[8] = mat->m02; values[9] = mat->m12; values[10] = mat->m22; values[11] = mat->m32;
+        values[12] = mat->m03; values[13] = mat->m13; values[14] = mat->m23; values[15] = mat->m33;
 
-void Internal_SetUniform2f(Shader *shader, const char *name, Vector2f value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform2f(location, value.x, value.y);
-}
-
-void Internal_SetUniform3f(Shader *shader, const char *name, Vector3f value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform3f(location, value.x, value.y, value.z);
-}
-
-void Internal_SetUniform4f(Shader *shader, const char *name, Vector4f value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform4f(location, value.x, value.y, value.z, value.w);
-}
-
-void Internal_SetUniform1i(Shader *shader, const char *name, int value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform1i(location, value);
-}
-
-void Internal_SetUniform2i(Shader *shader, const char *name, Vector2i value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform2i(location, value.x, value.y);
-}
-
-void Internal_SetUniform3i(Shader *shader, const char *name, Vector3i value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform3i(location, value.x, value.y, value.z);
-}
-
-void Internal_SetUniform4i(Shader *shader, const char *name, Vector4i value) {
-    int location = GetUniformLocation(shader, name);
-    glUniform4i(location, value.x, value.y, value.z, value.w);
-}
-
-void Internal_SetUniformMatrix4f(Shader *shader, const char *name, Matrix4f *value) {
-    int location = GetUniformLocation(shader, name);
-
-    static float values[16];
-
-    values[0] = value->m00; values[1] = value->m10; values[2] = value->m20; values[3] = value->m30;
-    values[4] = value->m01; values[5] = value->m11; values[6] = value->m21; values[7] = value->m31;
-    values[8] = value->m02; values[9] = value->m12; values[10] = value->m22; values[11] = value->m32;
-    values[12] = value->m03; values[13] = value->m13; values[14] = value->m23; values[15] = value->m33;
-
-    glUniformMatrix4fv(location, 1, GL_FALSE, values);
+        glUniformMatrix4fv(location, 1, GL_FALSE, values);
+    }
+    }
 }

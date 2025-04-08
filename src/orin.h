@@ -2,9 +2,9 @@
 #define ORIN_H
 
 #if !defined(__STDC_VERSION__) || (__STDC_VERSION__ < 201112L)
-    #  if !defined(_MSC_VER) || (_MSC_VER < 1900)
+    #if !defined(_MSC_VER) || (_MSC_VER < 1900)
         #error "C11 or newer is required to compile this project."
-    #  endif
+    #endif
 #endif
 
 #include <glad/glad.h>
@@ -178,71 +178,60 @@ typedef struct {
     unsigned char a;
 } Color;
 
-typedef struct {
-    float x;
-    float y;
-} Vector2f;
+#ifndef ORIN_VEC2
+    #define ORIN_VEC2
+    typedef struct {
+        float x;
+        float y;
+    } Vector2f;
 
-typedef struct {
-    float x;
-    float y;
-    float z;
-} Vector3f;
+    typedef struct {
+        int x;
+        int y;
+    } Vector2i;
+#endif
 
-typedef struct {
-    float x;
-    float y;
-    float z;
-    float w;
-} Vector4f;
+#ifndef ORIN_VEC3
+    #define ORIN_VEC3
+    typedef struct {
+        float x;
+        float y;
+        float z;
+    } Vector3f;
 
-typedef struct {
-    double x;
-    double y;
-} Vector2d;
+    typedef struct {
+        int x;
+        int y;
+        int z;
+    } Vector3i;
+#endif
 
-typedef struct {
-    double x;
-    double y;
-    double z;
-} Vector3d;
+#ifndef ORIN_VEC4
+    #define ORIN_VEC4
+    typedef struct {
+        float x;
+        float y;
+        float z;
+        float w;
+    } Vector4f;
 
-typedef struct {
-    double x;
-    double y;
-    double z;
-    double w;
-} Vector4d;
+    typedef struct {
+        int x;
+        int y;
+        int z;
+        int w;
+    } Vector4i;
+#endif
 
-typedef struct {
-    int x;
-    int y;
-} Vector2i;
-
-typedef struct {
-    int x;
-    int y;
-    int z;
-} Vector3i;
-
-typedef struct {
-    int x;
-    int y;
-    int z;
-    int w;
-} Vector4i;
-
-typedef struct {
-    union {
-        struct {
-            float m00, m01, m02, m03;
-            float m10, m11, m12, m13;
-            float m20, m21, m22, m23;
-            float m30, m31, m32, m33;
-        };
-        float data[16];
-    };
-} Matrix4f;
+#ifndef ORIN_MAT4
+    #define ORIN_MAT4
+    typedef struct Matrix4f {
+        float m00, m01, m02, m03;
+        float m10, m11, m12, m13;
+        float m20, m21, m22, m23;
+        float m30, m31, m32, m33;
+    } Matrix4f;
+#endif
 
 typedef struct {
     Vector2f position;
@@ -337,46 +326,64 @@ typedef struct {
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
+typedef enum {
+    UNIFORM_FLOAT,
+    UNIFORM_INT,
+    UNIFORM_VEC2,
+    UNIFORM_VEC2I,
+    UNIFORM_VEC3,
+    UNIFORM_VEC3I,
+    UNIFORM_VEC4,
+    UNIFORM_VEC4I,
+    UNIFORM_MAT4,
+} UniformType;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-Display* CreateDisplay(DisplayMode displayMode, const char *title, int args);
+// Display
+Display* CreateDisplay(int width, int height, const char *title, int args);
 int DisplayShouldClose(Display* display);
-void UpdateDisplay(Display* display);
 void DestroyDisplay(Display* display);
 void SetDisplaySize(Display* display, int width, int height);
 void SetDisplayTitle(Display* display, const char *title);
 void UseVSync(bool sync);
+void SetDisplayIcon(Display *display, const char *fileName);
 
+// Mouse functions
+void HideMouse(Display *display, bool hidden);
+bool IsMouseHidden(Display *display);
+void DisableMouse(Display *display, bool disabled);
+bool IsMouseDisabled(Display *display);
+
+// Drawing functions
 void ClearBackground(Color color);
 void BeginDrawing(Shader *shader, Camera2D camera);
+void BeginDrawing2D(Camera2D camera);
 void EndDrawing();
-void DrawTexture(Texture *texture, Vector2f position, Vector2f size, Color color);
-void DrawRectangle(Vector2f position, Vector2f size, Color color);
-void SetColor(Color color);
+void DrawTexture(Texture *texture, float x, float y, float width, float height, Color tint);
+void DrawTextureV(Texture *texture, Vector2f position, Vector2f size, Color tint);
+void DrawRectangle(float x, float y, float width, float height, Color tint);
+void DrawRectangleV(Vector2f position, Vector2f size, Color tint);
 
+// Texture loading and unloading
 Texture *LoadTexture(const char *filename, int filter);
 void DestroyTexture(Texture *texture);
 
+// Shader
 Shader *CreateShader(const char *vertexFile, const char *fragmentFile);
 Shader *CreateDefaultShader();
 void DestroyShader(Shader *shader);
+int GetShaderLocation(Shader *shader, const char *uniformName);
+void SetShaderValue(Shader *shader, int location, const void *value, UniformType type);
 
+// Model
 Model *CreateModel(Vertex vertices[], size_t vertexCount, unsigned int indices[], size_t indexCount);
 void DestroyModel(Model *model);
-void DrawModel(Model *model, Matrix4f *transform);
+void DrawModel(Model *model, Vector3f position, Vector3f scale, Color tint);
 
-void SetUniform1f(Shader *shader, const char *name, float value);
-void SetUniform2f(Shader *shader, const char *name, Vector2f value);
-void SetUniform3f(Shader *shader, const char *name, Vector3f value);
-void SetUniform4f(Shader *shader, const char *name, Vector4f value);
-void SetUniform1i(Shader *shader, const char *name, int value);
-void SetUniform2i(Shader *shader, const char *name, Vector2i value);
-void SetUniform3i(Shader *shader, const char *name, Vector3i value);
-void SetUniform4i(Shader *shader, const char *name, Vector4i value);
-void SetUniformMatrix4f(Shader *shader, const char *name, Matrix4f *value);
-
+// Keyboard and Mouse input
 bool IsKeyDown(Key key);
 bool IsKeyReleased(Key key);
 bool IsButtonDown(Button button);
@@ -384,18 +391,25 @@ bool IsButtonReleased(Button button);
 Vector2f GetMousePosition();
 Vector2f GetMouseDelta();
 
-bool RectangleIntersects(Rectangle a, Rectangle b);
-bool RectangleIIntersects(RectangleI a, RectangleI b);
-bool RectangleContains(Rectangle a, Rectangle b);
-bool RectangleIContains(RectangleI a, RectangleI b);
-bool BoundingBoxIntersects(BoundingBox a, BoundingBox b);
-bool BoundingBoxIIntersects(BoundingBoxI a, BoundingBoxI b);
-bool BoundingBoxContains(BoundingBox a, BoundingBox b);
-bool BoundingBoxIContains(BoundingBoxI a, BoundingBoxI b);
-bool PointInRectangle(Rectangle rectangle, Vector2f point);
-bool PointIInRectangle(Rectangle rectangle, Vector2i point);
+// Math functions
+bool RectIntersects(Rectangle a, Rectangle b);
+bool RectContains(Rectangle a, Rectangle b);
+bool PointInRect(Rectangle a, Vector2f point);
+
+bool RectIIntersects(RectangleI a, RectangleI b);
+bool RectIContains(RectangleI a, RectangleI b);
+bool PointInRectI(RectangleI a, Vector2i point);
+
+bool BBoxIntersects(BoundingBox a, BoundingBox b);
+bool BBoxContains(BoundingBox a, BoundingBox b);
+
+bool BBoxIIntersects(BoundingBoxI a, BoundingBoxI b);
+bool BBoxIContains(BoundingBoxI a, BoundingBoxI b);
 
 Rectangle GetCameraViewport(Camera2D camera);
+
+// Utility functions
+int GetRandomValue(int min, int max);
 
 #ifdef __cplusplus
 }

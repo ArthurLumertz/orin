@@ -3,8 +3,60 @@
 #include <stdlib.h>
 #include <string.h>
 
-Vector4f ColorToVector4f(Color color) {
-    return (Vector4f) { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
+inline double MaxD(double a, double b) {
+    return (a > b) ? a : b;
+}
+
+inline float MaxF(float a, float b) {
+    return (a > b) ? a : b;
+}
+
+inline int MaxI(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+inline double MinD(double a, double b) {
+    return (a < b) ? a : b;
+}
+
+inline float MinF(float a, float b) {
+    return (a < b) ? a : b;
+}
+
+inline int MinI(int a, int b) {
+    return (a < b) ? a : b;
+}
+
+inline double LerpD(double a, double b, double t) {
+    return a + (b - a) * t;
+}
+
+inline float LerpF(float a, float b, float t) {
+    return a + (b - a) * t;
+}
+
+inline double ClampD(double value, double min, double max) {
+    return MinD(MaxD(value, min), max);
+}
+
+inline float ClampF(float value, float min, float max) {
+    return MinF(MaxF(value, min), max);
+}
+
+inline int ClampI(int value, int min, int max) {
+    return MinI(MaxI(value, min), max);
+}
+
+inline float Normalize(float value, float min, float max) {
+    return (value - min) / (max - min);
+}
+
+inline float DegreesToRadians(float degrees) {
+    return degrees * (PI / 180.0f);
+}
+
+inline float RadiansToDegrees(float radians) {
+    return radians * (180.0f / PI);
 }
 
 void IdentityMatrix4f(Matrix4f *result) {
@@ -104,20 +156,20 @@ void OrthoMatrix4f(Matrix4f *result, float left, float right, float bottom, floa
     *result = matrix;
 }
 
-void InverseMatrix4f(Matrix4f* result, const Matrix4f* m) {
+void InverseMatrix4f(Matrix4f *result, const Matrix4f *m) {
     float det =
         m->m00 * (m->m11 * (m->m22 * m->m33 - m->m23 * m->m32) -
-                  m->m12 * (m->m21 * m->m33 - m->m23 * m->m31) +
-                  m->m13 * (m->m21 * m->m32 - m->m22 * m->m31)) -
+            m->m12 * (m->m21 * m->m33 - m->m23 * m->m31) +
+            m->m13 * (m->m21 * m->m32 - m->m22 * m->m31)) -
         m->m01 * (m->m10 * (m->m22 * m->m33 - m->m23 * m->m32) -
-                  m->m12 * (m->m20 * m->m33 - m->m23 * m->m30) +
-                  m->m13 * (m->m20 * m->m32 - m->m22 * m->m30)) +
+            m->m12 * (m->m20 * m->m33 - m->m23 * m->m30) +
+            m->m13 * (m->m20 * m->m32 - m->m22 * m->m30)) +
         m->m02 * (m->m10 * (m->m21 * m->m33 - m->m23 * m->m31) -
-                  m->m11 * (m->m20 * m->m33 - m->m23 * m->m30) +
-                  m->m13 * (m->m20 * m->m31 - m->m21 * m->m30)) -
+            m->m11 * (m->m20 * m->m33 - m->m23 * m->m30) +
+            m->m13 * (m->m20 * m->m31 - m->m21 * m->m30)) -
         m->m03 * (m->m10 * (m->m21 * m->m32 - m->m22 * m->m31) -
-                  m->m11 * (m->m20 * m->m32 - m->m22 * m->m30) +
-                  m->m12 * (m->m20 * m->m31 - m->m21 * m->m30));
+            m->m11 * (m->m20 * m->m32 - m->m22 * m->m30) +
+            m->m12 * (m->m20 * m->m31 - m->m21 * m->m30));
 
     if (det == 0.0f) {
         memset(result, 0, sizeof(Matrix4f));
@@ -127,74 +179,74 @@ void InverseMatrix4f(Matrix4f* result, const Matrix4f* m) {
     float invDet = 1.0f / det;
     Matrix4f inv;
 
-    inv.m00 =  (m->m11 * (m->m22 * m->m33 - m->m23 * m->m32) -
-                m->m12 * (m->m21 * m->m33 - m->m23 * m->m31) +
-                m->m13 * (m->m21 * m->m32 - m->m22 * m->m31)) * invDet;
+    inv.m00 = (m->m11 * (m->m22 * m->m33 - m->m23 * m->m32) -
+        m->m12 * (m->m21 * m->m33 - m->m23 * m->m31) +
+        m->m13 * (m->m21 * m->m32 - m->m22 * m->m31)) * invDet;
 
     inv.m01 = -(m->m01 * (m->m22 * m->m33 - m->m23 * m->m32) -
-                m->m02 * (m->m21 * m->m33 - m->m23 * m->m31) +
-                m->m03 * (m->m21 * m->m32 - m->m22 * m->m31)) * invDet;
+        m->m02 * (m->m21 * m->m33 - m->m23 * m->m31) +
+        m->m03 * (m->m21 * m->m32 - m->m22 * m->m31)) * invDet;
 
-    inv.m02 =  (m->m01 * (m->m12 * m->m33 - m->m13 * m->m32) -
-                m->m02 * (m->m11 * m->m33 - m->m13 * m->m31) +
-                m->m03 * (m->m11 * m->m32 - m->m12 * m->m31)) * invDet;
+    inv.m02 = (m->m01 * (m->m12 * m->m33 - m->m13 * m->m32) -
+        m->m02 * (m->m11 * m->m33 - m->m13 * m->m31) +
+        m->m03 * (m->m11 * m->m32 - m->m12 * m->m31)) * invDet;
 
     inv.m03 = -(m->m01 * (m->m12 * m->m23 - m->m13 * m->m22) -
-                m->m02 * (m->m11 * m->m23 - m->m13 * m->m21) +
-                m->m03 * (m->m11 * m->m22 - m->m12 * m->m21)) * invDet;
+        m->m02 * (m->m11 * m->m23 - m->m13 * m->m21) +
+        m->m03 * (m->m11 * m->m22 - m->m12 * m->m21)) * invDet;
 
     inv.m10 = -(m->m10 * (m->m22 * m->m33 - m->m23 * m->m32) -
-                m->m12 * (m->m20 * m->m33 - m->m23 * m->m30) +
-                m->m13 * (m->m20 * m->m32 - m->m22 * m->m30)) * invDet;
+        m->m12 * (m->m20 * m->m33 - m->m23 * m->m30) +
+        m->m13 * (m->m20 * m->m32 - m->m22 * m->m30)) * invDet;
 
-    inv.m11 =  (m->m00 * (m->m22 * m->m33 - m->m23 * m->m32) -
-                m->m02 * (m->m20 * m->m33 - m->m23 * m->m30) +
-                m->m03 * (m->m20 * m->m32 - m->m22 * m->m30)) * invDet;
+    inv.m11 = (m->m00 * (m->m22 * m->m33 - m->m23 * m->m32) -
+        m->m02 * (m->m20 * m->m33 - m->m23 * m->m30) +
+        m->m03 * (m->m20 * m->m32 - m->m22 * m->m30)) * invDet;
 
     inv.m12 = -(m->m00 * (m->m12 * m->m33 - m->m13 * m->m32) -
-                m->m02 * (m->m10 * m->m33 - m->m13 * m->m30) +
-                m->m03 * (m->m10 * m->m32 - m->m12 * m->m30)) * invDet;
+        m->m02 * (m->m10 * m->m33 - m->m13 * m->m30) +
+        m->m03 * (m->m10 * m->m32 - m->m12 * m->m30)) * invDet;
 
-    inv.m13 =  (m->m00 * (m->m12 * m->m23 - m->m13 * m->m22) -
-                m->m02 * (m->m10 * m->m23 - m->m13 * m->m20) +
-                m->m03 * (m->m10 * m->m22 - m->m12 * m->m20)) * invDet;
+    inv.m13 = (m->m00 * (m->m12 * m->m23 - m->m13 * m->m22) -
+        m->m02 * (m->m10 * m->m23 - m->m13 * m->m20) +
+        m->m03 * (m->m10 * m->m22 - m->m12 * m->m20)) * invDet;
 
-    inv.m20 =  (m->m10 * (m->m21 * m->m33 - m->m23 * m->m31) -
-                m->m11 * (m->m20 * m->m33 - m->m23 * m->m30) +
-                m->m13 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+    inv.m20 = (m->m10 * (m->m21 * m->m33 - m->m23 * m->m31) -
+        m->m11 * (m->m20 * m->m33 - m->m23 * m->m30) +
+        m->m13 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
 
     inv.m21 = -(m->m00 * (m->m21 * m->m33 - m->m23 * m->m31) -
-                m->m01 * (m->m20 * m->m33 - m->m23 * m->m30) +
-                m->m03 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+        m->m01 * (m->m20 * m->m33 - m->m23 * m->m30) +
+        m->m03 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
 
-    inv.m22 =  (m->m00 * (m->m11 * m->m33 - m->m13 * m->m31) -
-                m->m01 * (m->m10 * m->m33 - m->m13 * m->m30) +
-                m->m03 * (m->m10 * m->m31 - m->m11 * m->m30)) * invDet;
+    inv.m22 = (m->m00 * (m->m11 * m->m33 - m->m13 * m->m31) -
+        m->m01 * (m->m10 * m->m33 - m->m13 * m->m30) +
+        m->m03 * (m->m10 * m->m31 - m->m11 * m->m30)) * invDet;
 
     inv.m23 = -(m->m00 * (m->m11 * m->m23 - m->m13 * m->m21) -
-                m->m01 * (m->m10 * m->m23 - m->m13 * m->m20) +
-                m->m03 * (m->m10 * m->m21 - m->m11 * m->m20)) * invDet;
+        m->m01 * (m->m10 * m->m23 - m->m13 * m->m20) +
+        m->m03 * (m->m10 * m->m21 - m->m11 * m->m20)) * invDet;
 
     inv.m30 = -(m->m10 * (m->m21 * m->m32 - m->m22 * m->m31) -
-                m->m11 * (m->m20 * m->m32 - m->m22 * m->m30) +
-                m->m12 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+        m->m11 * (m->m20 * m->m32 - m->m22 * m->m30) +
+        m->m12 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
 
-    inv.m31 =  (m->m00 * (m->m21 * m->m32 - m->m22 * m->m31) -
-                m->m01 * (m->m20 * m->m32 - m->m22 * m->m30) +
-                m->m02 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
+    inv.m31 = (m->m00 * (m->m21 * m->m32 - m->m22 * m->m31) -
+        m->m01 * (m->m20 * m->m32 - m->m22 * m->m30) +
+        m->m02 * (m->m20 * m->m31 - m->m21 * m->m30)) * invDet;
 
     inv.m32 = -(m->m00 * (m->m11 * m->m32 - m->m12 * m->m31) -
-                m->m01 * (m->m10 * m->m32 - m->m12 * m->m30) +
-                m->m02 * (m->m10 * m->m31 - m->m11 * m->m30)) * invDet;
+        m->m01 * (m->m10 * m->m32 - m->m12 * m->m30) +
+        m->m02 * (m->m10 * m->m31 - m->m11 * m->m30)) * invDet;
 
-    inv.m33 =  (m->m00 * (m->m11 * m->m22 - m->m12 * m->m21) -
-                m->m01 * (m->m10 * m->m22 - m->m12 * m->m20) +
-                m->m02 * (m->m10 * m->m21 - m->m11 * m->m20)) * invDet;
+    inv.m33 = (m->m00 * (m->m11 * m->m22 - m->m12 * m->m21) -
+        m->m01 * (m->m10 * m->m22 - m->m12 * m->m20) +
+        m->m02 * (m->m10 * m->m21 - m->m11 * m->m20)) * invDet;
 
     *result = inv;
 }
 
-void TransposeMatrix4f(Matrix4f* result, const Matrix4f* m) {
+void TransposeMatrix4f(Matrix4f *result, const Matrix4f *m) {
     result->m00 = m->m00;
     result->m01 = m->m10;
     result->m02 = m->m20;
@@ -216,18 +268,10 @@ void TransposeMatrix4f(Matrix4f* result, const Matrix4f* m) {
     result->m33 = m->m33;
 }
 
-void InverseTransposeMatrix4f(Matrix4f* result, const Matrix4f* m) {
+void InverseTransposeMatrix4f(Matrix4f *result, const Matrix4f *m) {
     Matrix4f inverse;
     InverseMatrix4f(&inverse, m);
     TransposeMatrix4f(result, &inverse);
-}
-
-float DegreesToRadians(float degrees) {
-    return degrees * (M_PI / 180.0f);
-}
-
-float RadiansToDegrees(float radians) {
-    return radians * (180.0f / M_PI);
 }
 
 /* ======================= */
@@ -235,19 +279,19 @@ float RadiansToDegrees(float radians) {
 /* ======================= */
 
 Vector2f AddVector2f(Vector2f v1, Vector2f v2) {
-    return (Vector2f){v1.x + v2.x, v1.y + v2.y};
+    return (Vector2f) { v1.x + v2.x, v1.y + v2.y };
 }
 
 Vector2f SubtractVector2f(Vector2f v1, Vector2f v2) {
-    return (Vector2f){v1.x - v2.x, v1.y - v2.y};
+    return (Vector2f) { v1.x - v2.x, v1.y - v2.y };
 }
 
 Vector2f MultiplyVector2f(Vector2f v1, Vector2f v2) {
-    return (Vector2f){v1.x * v2.x, v1.y * v2.y};
+    return (Vector2f) { v1.x *v2.x, v1.y *v2.y };
 }
 
 Vector2f DivideVector2f(Vector2f v1, Vector2f v2) {
-    return (Vector2f){v1.x / v2.x, v1.y / v2.y};
+    return (Vector2f) { v1.x / v2.x, v1.y / v2.y };
 }
 
 float Vector2fLength(Vector2f v) {
@@ -269,7 +313,7 @@ float Vector2fCrossProduct(Vector2f v1, Vector2f v2) {
 Vector2f NormalizeVector2f(Vector2f v) {
     float length = Vector2fLength(v);
     if (length > 0) {
-        return (Vector2f){v.x / length, v.y / length};
+        return (Vector2f) { v.x / length, v.y / length };
     }
     return v;
 }
@@ -279,19 +323,19 @@ Vector2f NormalizeVector2f(Vector2f v) {
 /* ======================= */
 
 Vector2i AddVector2i(Vector2i v1, Vector2i v2) {
-    return (Vector2i){v1.x + v2.x, v1.y + v2.y};
+    return (Vector2i) { v1.x + v2.x, v1.y + v2.y };
 }
 
 Vector2i SubtractVector2i(Vector2i v1, Vector2i v2) {
-    return (Vector2i){v1.x - v2.x, v1.y - v2.y};
+    return (Vector2i) { v1.x - v2.x, v1.y - v2.y };
 }
 
 Vector2i MultiplyVector2i(Vector2i v1, Vector2i v2) {
-    return (Vector2i){v1.x * v2.x, v1.y * v2.y};
+    return (Vector2i) { v1.x *v2.x, v1.y *v2.y };
 }
 
 Vector2i DivideVector2i(Vector2i v1, Vector2i v2) {
-    return (Vector2i){v1.x / v2.x, v1.y / v2.y};
+    return (Vector2i) { v1.x / v2.x, v1.y / v2.y };
 }
 
 float Vector2iLength(Vector2i v) {
@@ -313,7 +357,7 @@ float Vector2iCrossProduct(Vector2i v1, Vector2i v2) {
 Vector2i NormalizeVector2i(Vector2i v) {
     float length = Vector2iLength(v);
     if (length > 0) {
-        return (Vector2i){(int)(v.x / length), (int)(v.y / length)};
+        return (Vector2i) { (int)(v.x / length), (int)(v.y / length) };
     }
     return v;
 }
@@ -323,19 +367,19 @@ Vector2i NormalizeVector2i(Vector2i v) {
 /* ======================= */
 
 Vector3f AddVector3f(Vector3f v1, Vector3f v2) {
-    return (Vector3f){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
+    return (Vector3f) { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z };
 }
 
 Vector3f SubtractVector3f(Vector3f v1, Vector3f v2) {
-    return (Vector3f){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
+    return (Vector3f) { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z };
 }
 
 Vector3f MultiplyVector3f(Vector3f v1, Vector3f v2) {
-    return (Vector3f){v1.x * v2.x, v1.y * v2.y, v1.z * v2.z};
+    return (Vector3f) { v1.x *v2.x, v1.y *v2.y, v1.z *v2.z };
 }
 
 Vector3f DivideVector3f(Vector3f v1, Vector3f v2) {
-    return (Vector3f){v1.x / v2.x, v1.y / v2.y, v1.z / v2.z};
+    return (Vector3f) { v1.x / v2.x, v1.y / v2.y, v1.z / v2.z };
 }
 
 float Vector3fLength(Vector3f v) {
@@ -351,17 +395,17 @@ float Vector3fDotProduct(Vector3f v1, Vector3f v2) {
 }
 
 Vector3f Vector3fCrossProduct(Vector3f v1, Vector3f v2) {
-    return (Vector3f){
-        v1.y * v2.z - v1.z * v2.y,
-        v1.z * v2.x - v1.x * v2.z,
-        v1.x * v2.y - v1.y * v2.x
+    return (Vector3f) {
+        v1.y *v2.z - v1.z * v2.y,
+            v1.z *v2.x - v1.x * v2.z,
+            v1.x *v2.y - v1.y * v2.x
     };
 }
 
 Vector3f NormalizeVector3f(Vector3f v) {
     float length = Vector3fLength(v);
     if (length > 0) {
-        return (Vector3f){v.x / length, v.y / length, v.z / length};
+        return (Vector3f) { v.x / length, v.y / length, v.z / length };
     }
     return v;
 }
@@ -371,19 +415,19 @@ Vector3f NormalizeVector3f(Vector3f v) {
 /* ======================= */
 
 Vector3i AddVector3i(Vector3i v1, Vector3i v2) {
-    return (Vector3i){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
+    return (Vector3i) { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z };
 }
 
 Vector3i SubtractVector3i(Vector3i v1, Vector3i v2) {
-    return (Vector3i){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
+    return (Vector3i) { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z };
 }
 
 Vector3i MultiplyVector3i(Vector3i v1, Vector3i v2) {
-    return (Vector3i){v1.x * v2.x, v1.y * v2.y, v1.z * v2.z};
+    return (Vector3i) { v1.x *v2.x, v1.y *v2.y, v1.z *v2.z };
 }
 
 Vector3i DivideVector3i(Vector3i v1, Vector3i v2) {
-    return (Vector3i){v1.x / v2.x, v1.y / v2.y, v1.z / v2.z};
+    return (Vector3i) { v1.x / v2.x, v1.y / v2.y, v1.z / v2.z };
 }
 
 float Vector3iLength(Vector3i v) {
@@ -399,20 +443,20 @@ float Vector3iDotProduct(Vector3i v1, Vector3i v2) {
 }
 
 Vector3i Vector3iCrossProduct(Vector3i v1, Vector3i v2) {
-    return (Vector3i){
-        v1.y * v2.z - v1.z * v2.y,
-        v1.z * v2.x - v1.x * v2.z,
-        v1.x * v2.y - v1.y * v2.x
+    return (Vector3i) {
+        v1.y *v2.z - v1.z * v2.y,
+            v1.z *v2.x - v1.x * v2.z,
+            v1.x *v2.y - v1.y * v2.x
     };
 }
 
 Vector3i NormalizeVector3i(Vector3i v) {
     float length = Vector3iLength(v);
     if (length > 0) {
-        return (Vector3i){
+        return (Vector3i) {
             (int)(v.x / length),
-            (int)(v.y / length),
-            (int)(v.z / length)
+                (int)(v.y / length),
+                (int)(v.z / length)
         };
     }
     return v;
@@ -423,19 +467,19 @@ Vector3i NormalizeVector3i(Vector3i v) {
 /* ======================= */
 
 Vector4f AddVector4f(Vector4f v1, Vector4f v2) {
-    return (Vector4f){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w};
+    return (Vector4f) { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w };
 }
 
 Vector4f SubtractVector4f(Vector4f v1, Vector4f v2) {
-    return (Vector4f){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w};
+    return (Vector4f) { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w };
 }
 
 Vector4f MultiplyVector4f(Vector4f v1, Vector4f v2) {
-    return (Vector4f){v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w};
+    return (Vector4f) { v1.x *v2.x, v1.y *v2.y, v1.z *v2.z, v1.w *v2.w };
 }
 
 Vector4f DivideVector4f(Vector4f v1, Vector4f v2) {
-    return (Vector4f){v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w};
+    return (Vector4f) { v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w };
 }
 
 float Vector4fLength(Vector4f v) {
@@ -453,7 +497,7 @@ float Vector4fDotProduct(Vector4f v1, Vector4f v2) {
 Vector4f NormalizeVector4f(Vector4f v) {
     float length = Vector4fLength(v);
     if (length > 0) {
-        return (Vector4f){v.x / length, v.y / length, v.z / length, v.w / length};
+        return (Vector4f) { v.x / length, v.y / length, v.z / length, v.w / length };
     }
     return v;
 }
@@ -463,19 +507,19 @@ Vector4f NormalizeVector4f(Vector4f v) {
 /* ======================= */
 
 Vector4i AddVector4i(Vector4i v1, Vector4i v2) {
-    return (Vector4i){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w};
+    return (Vector4i) { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w };
 }
 
 Vector4i SubtractVector4i(Vector4i v1, Vector4i v2) {
-    return (Vector4i){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w};
+    return (Vector4i) { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w };
 }
 
 Vector4i MultiplyVector4i(Vector4i v1, Vector4i v2) {
-    return (Vector4i){v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w};
+    return (Vector4i) { v1.x *v2.x, v1.y *v2.y, v1.z *v2.z, v1.w *v2.w };
 }
 
 Vector4i DivideVector4i(Vector4i v1, Vector4i v2) {
-    return (Vector4i){v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w};
+    return (Vector4i) { v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w };
 }
 
 float Vector4iLength(Vector4i v) {
@@ -493,61 +537,61 @@ float Vector4iDotProduct(Vector4i v1, Vector4i v2) {
 Vector4i NormalizeVector4i(Vector4i v) {
     float length = Vector4iLength(v);
     if (length > 0) {
-        return (Vector4i){
+        return (Vector4i) {
             (int)(v.x / length),
-            (int)(v.y / length),
-            (int)(v.z / length),
-            (int)(v.w / length)
+                (int)(v.y / length),
+                (int)(v.z / length),
+                (int)(v.w / length)
         };
     }
     return v;
 }
 
 Vector2f LerpVector2f(Vector2f a, Vector2f b, float t) {
-    return (Vector2f){
+    return (Vector2f) {
         a.x + (b.x - a.x) * t,
-        a.y + (b.y - a.y) * t
+            a.y + (b.y - a.y) * t
     };
 }
 
 Vector2i LerpVector2i(Vector2i a, Vector2i b, float t) {
-    return (Vector2i){
+    return (Vector2i) {
         (int)(a.x + (float)(b.x - a.x) * t + 0.5f),
-        (int)(a.y + (float)(b.y - a.y) * t + 0.5f)
+            (int)(a.y + (float)(b.y - a.y) * t + 0.5f)
     };
 }
 
 Vector3f LerpVector3f(Vector3f a, Vector3f b, float t) {
-    return (Vector3f){
+    return (Vector3f) {
         a.x + (b.x - a.x) * t,
-        a.y + (b.y - a.y) * t,
-        a.z + (b.z - a.z) * t
+            a.y + (b.y - a.y) * t,
+            a.z + (b.z - a.z) * t
     };
 }
 
 Vector3i LerpVector3i(Vector3i a, Vector3i b, float t) {
-    return (Vector3i){
+    return (Vector3i) {
         (int)(a.x + (float)(b.x - a.x) * t + 0.5f),
-        (int)(a.y + (float)(b.y - a.y) * t + 0.5f),
-        (int)(a.z + (float)(b.z - a.z) * t + 0.5f)
+            (int)(a.y + (float)(b.y - a.y) * t + 0.5f),
+            (int)(a.z + (float)(b.z - a.z) * t + 0.5f)
     };
 }
 
 Vector4f LerpVector4f(Vector4f a, Vector4f b, float t) {
-    return (Vector4f){
+    return (Vector4f) {
         a.x + (b.x - a.x) * t,
-        a.y + (b.y - a.y) * t,
-        a.z + (b.z - a.z) * t,
-        a.w + (b.w - a.w) * t
+            a.y + (b.y - a.y) * t,
+            a.z + (b.z - a.z) * t,
+            a.w + (b.w - a.w) * t
     };
 }
 
 Vector4i LerpVector4i(Vector4i a, Vector4i b, float t) {
-    return (Vector4i){
+    return (Vector4i) {
         (int)(a.x + (float)(b.x - a.x) * t + 0.5f),
-        (int)(a.y + (float)(b.y - a.y) * t + 0.5f),
-        (int)(a.z + (float)(b.z - a.z) * t + 0.5f),
-        (int)(a.w + (float)(b.w - a.w) * t + 0.5f)
+            (int)(a.y + (float)(b.y - a.y) * t + 0.5f),
+            (int)(a.z + (float)(b.z - a.z) * t + 0.5f),
+            (int)(a.w + (float)(b.w - a.w) * t + 0.5f)
     };
 }
 

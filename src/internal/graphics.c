@@ -39,90 +39,114 @@ void Internal_BeginDrawing(Camera2D camera, Shader *shader, Display *display) {
         lastProgram = shader->id;
     }
 
-    Matrix4f projMatrix;
-    OrthoMatrix4f(&projMatrix, 0.0f, vw, vh, 0.0f, -1.0f, 1.0f);
-
-    Matrix4f viewMatrix;
-    IdentityMatrix4f(&viewMatrix);
-
+    static Matrix4f viewMatrix;
+    static Matrix4f translatedView;
+    static Matrix4f combinedMatrix;
+    static Matrix4f projMatrix;
+    
     Vector3f cameraTranslation = { -camera.position.x, -camera.position.y, 0.0f };
-    Matrix4f translatedView;
-    TranslateMatrix4f(&translatedView, &viewMatrix, cameraTranslation);
 
-    Matrix4f combinedMatrix;
+    OrthoMatrix4f(&projMatrix, 0.0f, vw, vh, 0.0f, -1.0f, 1.0f);
+    IdentityMatrix4f(&viewMatrix);
+    TranslateMatrix4f(&translatedView, &viewMatrix, cameraTranslation);
     MultiplyMatrix4f(&combinedMatrix, &projMatrix, &translatedView);
 
-    SetUniformMatrix4f(shader, "u_combmatrix", &combinedMatrix);
+    static int combMatrixLocation = 0;
+    static bool hasFetchedMatrix = false;
+    if (!hasFetchedMatrix) {
+        combMatrixLocation = GetShaderLocation(shader, "u_combmatrix");
+        hasFetchedMatrix = true;
+    }
+    SetShaderValue(shader, combMatrixLocation, &combinedMatrix, UNIFORM_MAT4);
 }
 
 void Internal_EndDrawing() {
 
 }
 
-void Internal_SetColor(Color color, Shader *shader) {
-    Vector4f c = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
-    SetUniform4f(shader, "u_color", c);
-}
-
-void Internal_DrawModel(Model *model, Matrix4f *transform, Shader *shader) {
+void Internal_DrawModel(Model *model, Vector3f position, Vector3f scale, Color tint, Shader *shader) {
     static unsigned int lastVao = 999;
 
     if (lastVao != model->vao) {
         glBindVertexArray(model->vao);
     }
 
-    SetUniformMatrix4f(shader, "u_transmatrix", transform);
+    static Matrix4f transform;
+    static Matrix4f scaled;
+    static Matrix4f translated;
 
+    IdentityMatrix4f(&transform);
+    ScaleMatrix4f(&scaled, &transform, scale);
+    TranslateMatrix4f(&translated, &scaled, position);
+
+    static int locationTransMatrix;
+    static bool hasFetchedTransMatrix = false;
+    if (!hasFetchedTransMatrix) {
+        locationTransMatrix = GetShaderLocation(shader, "u_transmatrix");
+        hasFetchedTransMatrix = true;
+    }
+    SetShaderValue(shader, locationTransMatrix, &translated, UNIFORM_MAT4);
     glDrawElements(GL_TRIANGLES, model->indexCount, GL_UNSIGNED_INT, 0);
 
     lastVao = model->vao;
 }
 
-void Internal_DrawRectangle(Shader *shader, Vector2f position, Vector2f size, Color color) {
-    Matrix4f transform;
-    IdentityMatrix4f(&transform);
-
-    Matrix4f scaled;
-    ScaleMatrix4f(&scaled, &transform, (Vector3f){ size.x, size.y, 0.0f });
-
-    Matrix4f translated;
-    TranslateMatrix4f(&translated, &scaled, (Vector3f){ position.x, position.y, 0.0f });
-
-    Vector4f c = {
-        color.r / 255.0f,
-        color.g / 255.0f,
-        color.b / 255.0f,
-        color.a / 255.0f
+void Internal_DrawRectangle(Shader *shader, float x, float y, float width, float height, Color tint) {
+    Vector4f color = {
+        tint.r / 255.0f,
+        tint.g / 255.0f,
+        tint.b / 255.0f,
+        tint.a / 255.0f
     };
 
-    SetUniform4f(shader, "u_color", c);
-    Internal_DrawModel(GetCubeModel(), &translated, shader);
+    static int location = 0;
+    static bool hasFetched = false;
+    if (!hasFetched) {
+        location = GetShaderLocation(shader, "u_color");
+        hasFetched = true;
+    }
+    SetShaderValue(shader, location, &color, UNIFORM_VEC4);
+    Internal_DrawModel(GetCubeModel(), (Vector3f){ x, y, 0.0f }, (Vector3f){ width, height, 0.0f }, tint, shader);
 }
 
-void Internal_DrawTexture(Shader *shader, Texture *texture, Vector2f position, Vector2f size, Color color) {
+void Internal_DrawTexture(Shader *shader, Texture *texture, float x, float y, float width, float height, Color tint) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture->id);
-    SetUniform1i(shader, "u_texture", 1);
-    SetUniform1i(shader, "u_sampler", 0);
+    static int locationTexture = 0;
+    static bool hasFetchedTexture = false;
+    if (!hasFetchedTexture) {
+        locationTexture = GetShaderLocation(shader, "u_texture");
+        hasFetchedTexture = true;
+    }
+    
+    int value = 1;
+    SetShaderValue(shader, locationTexture, &value, UNIFORM_INT);
 
-    Vector4f c = {
-        color.r / 255.0f,
-        color.g / 255.0f,
-        color.b / 255.0f,
-        color.a / 255.0f
+    static int locationSampler = 0;
+    static bool hasFetchedSampler = false;
+    if (!hasFetchedSampler) {
+        locationSampler = GetShaderLocation(shader, "u_sampler");
+        hasFetchedSampler = true;
+    }
+    value = 0;
+    SetShaderValue(shader, locationSampler, &value, UNIFORM_INT);
+
+    Vector4f color = {
+        tint.r / 255.0f,
+        tint.g / 255.0f,
+        tint.b / 255.0f,
+        tint.a / 255.0f
     };
-    SetUniform4f(shader, "u_color", c);
 
-    Matrix4f identity;
-    IdentityMatrix4f(&identity);
+    static int locationColor = 0;
+    static bool hasFetchedColor = false;
+    if (!hasFetchedColor) {
+        locationColor = GetShaderLocation(shader, "u_color");
+        hasFetchedColor = true;
+    }
+    SetShaderValue(shader, locationColor, &color, UNIFORM_VEC4);
+    Internal_DrawModel(GetCubeModel(), (Vector3f) { x, y, 0.0f }, (Vector3f) { width, height, 0.0f }, tint, shader);
 
-    Matrix4f scaled;
-    ScaleMatrix4f(&scaled, &identity, (Vector3f){ size.x, size.y, 0.0f });
-
-    Matrix4f transformed;
-    TranslateMatrix4f(&transformed, &scaled, (Vector3f){ position.x, position.y, 0.0f });
-
-    Internal_DrawModel(GetCubeModel(), &transformed, shader);
-
-    SetUniform1i(shader, "u_texture", 0);
+    value = 0;
+    SetShaderValue(shader, locationTexture, &value, UNIFORM_INT);
 }
