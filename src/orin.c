@@ -1,3 +1,4 @@
+#define ORAPI_EXPORTS
 #include "orin.h"
 #include "orinmath.h"
 
@@ -281,7 +282,7 @@ int GetRandomValue(int min, int max) {
 }
 
 void HideMouse(Display *display, bool hidden) {
-    Internal_SetMouseHidden(display, hidden);
+    Internal_HideMouse(display, hidden);
 }
 
 bool IsMouseHidden(Display *display) {

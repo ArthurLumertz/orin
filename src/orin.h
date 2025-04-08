@@ -7,6 +7,19 @@
     #endif
 #endif
 
+#ifndef ORAPI
+    #ifdef _WIN32
+        #ifdef ORAPI_EXPORTS
+            #define ORAPI __declspec(dllexport)
+        #else
+            #define ORAPI __declspec(dllimport)
+        #endif
+    #else
+        #define ORAPI
+    #endif
+#endif
+
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
@@ -343,73 +356,73 @@ extern "C" {
 #endif
 
 // Display
-Display* CreateDisplay(int width, int height, const char *title, int args);
-int DisplayShouldClose(Display* display);
-void DestroyDisplay(Display* display);
-void SetDisplaySize(Display* display, int width, int height);
-void SetDisplayTitle(Display* display, const char *title);
-void UseVSync(bool sync);
-void SetDisplayIcon(Display *display, const char *fileName);
+ORAPI Display *CreateDisplay(int width, int height, const char *title, int args);
+ORAPI int DisplayShouldClose(Display *display);
+ORAPI void DestroyDisplay(Display *display);
+ORAPI void SetDisplaySize(Display *display, int width, int height);
+ORAPI void SetDisplayTitle(Display *display, const char *title);
+ORAPI void UseVSync(bool sync);
+ORAPI void SetDisplayIcon(Display *display, const char *fileName);
 
 // Mouse functions
-void HideMouse(Display *display, bool hidden);
-bool IsMouseHidden(Display *display);
-void DisableMouse(Display *display, bool disabled);
-bool IsMouseDisabled(Display *display);
+ORAPI void HideMouse(Display *display, bool hidden);
+ORAPI bool IsMouseHidden(Display *display);
+ORAPI void DisableMouse(Display *display, bool disabled);
+ORAPI bool IsMouseDisabled(Display *display);
 
 // Drawing functions
-void ClearBackground(Color color);
-void BeginDrawing(Shader *shader, Camera2D camera);
-void BeginDrawing2D(Camera2D camera);
-void EndDrawing();
-void DrawTexture(Texture *texture, float x, float y, float width, float height, Color tint);
-void DrawTextureV(Texture *texture, Vector2f position, Vector2f size, Color tint);
-void DrawRectangle(float x, float y, float width, float height, Color tint);
-void DrawRectangleV(Vector2f position, Vector2f size, Color tint);
+ORAPI void ClearBackground(Color color);
+ORAPI void BeginDrawing(Shader *shader, Camera2D camera);
+ORAPI void BeginDrawing2D(Camera2D camera);
+ORAPI void EndDrawing();
+ORAPI void DrawTexture(Texture *texture, float x, float y, float width, float height, Color tint);
+ORAPI void DrawTextureV(Texture *texture, Vector2f position, Vector2f size, Color tint);
+ORAPI void DrawRectangle(float x, float y, float width, float height, Color tint);
+ORAPI void DrawRectangleV(Vector2f position, Vector2f size, Color tint);
 
 // Texture loading and unloading
-Texture *LoadTexture(const char *filename, int filter);
-void DestroyTexture(Texture *texture);
+ORAPI Texture *LoadTexture(const char *filename, int filter);
+ORAPI void DestroyTexture(Texture *texture);
 
 // Shader
-Shader *CreateShader(const char *vertexFile, const char *fragmentFile);
-Shader *CreateDefaultShader();
-void DestroyShader(Shader *shader);
-int GetShaderLocation(Shader *shader, const char *uniformName);
-void SetShaderValue(Shader *shader, int location, const void *value, UniformType type);
+ORAPI Shader *CreateShader(const char *vertexFile, const char *fragmentFile);
+ORAPI Shader *CreateDefaultShader();
+ORAPI void DestroyShader(Shader *shader);
+ORAPI int GetShaderLocation(Shader *shader, const char *uniformName);
+ORAPI void SetShaderValue(Shader *shader, int location, const void *value, UniformType type);
 
 // Model
-Model *CreateModel(Vertex vertices[], size_t vertexCount, unsigned int indices[], size_t indexCount);
-void DestroyModel(Model *model);
-void DrawModel(Model *model, Vector3f position, Vector3f scale, Color tint);
+ORAPI Model *CreateModel(Vertex vertices[], size_t vertexCount, unsigned int indices[], size_t indexCount);
+ORAPI void DestroyModel(Model *model);
+ORAPI void DrawModel(Model *model, Vector3f position, Vector3f scale, Color tint);
 
 // Keyboard and Mouse input
-bool IsKeyDown(Key key);
-bool IsKeyReleased(Key key);
-bool IsButtonDown(Button button);
-bool IsButtonReleased(Button button);
-Vector2f GetMousePosition();
-Vector2f GetMouseDelta();
+ORAPI bool IsKeyDown(Key key);
+ORAPI bool IsKeyReleased(Key key);
+ORAPI bool IsButtonDown(Button button);
+ORAPI bool IsButtonReleased(Button button);
+ORAPI Vector2f GetMousePosition();
+ORAPI Vector2f GetMouseDelta();
 
 // Math functions
-bool RectIntersects(Rectangle a, Rectangle b);
-bool RectContains(Rectangle a, Rectangle b);
-bool PointInRect(Rectangle a, Vector2f point);
+ORAPI bool RectIntersects(Rectangle a, Rectangle b);
+ORAPI bool RectContains(Rectangle a, Rectangle b);
+ORAPI bool PointInRect(Rectangle a, Vector2f point);
 
-bool RectIIntersects(RectangleI a, RectangleI b);
-bool RectIContains(RectangleI a, RectangleI b);
-bool PointInRectI(RectangleI a, Vector2i point);
+ORAPI bool RectIIntersects(RectangleI a, RectangleI b);
+ORAPI bool RectIContains(RectangleI a, RectangleI b);
+ORAPI bool PointInRectI(RectangleI a, Vector2i point);
 
-bool BBoxIntersects(BoundingBox a, BoundingBox b);
-bool BBoxContains(BoundingBox a, BoundingBox b);
+ORAPI bool BBoxIntersects(BoundingBox a, BoundingBox b);
+ORAPI bool BBoxContains(BoundingBox a, BoundingBox b);
 
-bool BBoxIIntersects(BoundingBoxI a, BoundingBoxI b);
-bool BBoxIContains(BoundingBoxI a, BoundingBoxI b);
+ORAPI bool BBoxIIntersects(BoundingBoxI a, BoundingBoxI b);
+ORAPI bool BBoxIContains(BoundingBoxI a, BoundingBoxI b);
 
-Rectangle GetCameraViewport(Camera2D camera);
+ORAPI Rectangle GetCameraViewport(Camera2D camera);
 
 // Utility functions
-int GetRandomValue(int min, int max);
+ORAPI int GetRandomValue(int min, int max);
 
 #ifdef __cplusplus
 }
