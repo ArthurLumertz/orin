@@ -1,7 +1,7 @@
 #ifndef ORIN_MODEL_H
 #define ORIN_MODEL_H
 
-#include "./orin.h"
+#include "../orin.h"
 
 #ifdef __cplusplus
 extern "C" {
